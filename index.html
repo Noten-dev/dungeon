@@ -266,6 +266,8 @@ button,.card,.shopitem{touch-action:manipulation}
 <div class="panel actions">
 <button class="mini" id="btnZi" title="Приблизить">+</button>
 <button class="mini" id="btnZo" title="Отдалить">−</button>
+<button class="mini" id="btnRotL" title="Повернуть влево">⟲</button>
+<button class="mini" id="btnRotR" title="Повернуть вправо">⟳</button>
 <button class="mini" id="btnSound">♪ вкл</button>
 <button class="mini" id="btnBestiary" title="Бестиарий">📖</button>
 <button class="mini" id="btnLeaders" title="Таблица счёта">🏆</button>
@@ -894,16 +896,347 @@ var G={state:'menu',N:9,mines:0,grid:[],order:[],firstDone:false,started:false,
 flags:0,revealedSafe:0,totalSafe:0,lightBonus:0,fogLift:false,
 hero:{cx:0,cy:0,rx:0,ry:0,seg:null,queue:[],pending:null,stepT:0,face:1,fdir:{dx:0,dy:1},last:{x:0,y:0}},
 cam:{x:0,y:0,zoom:1,tzoom:1},shake:0,lx:0,ly:0,torches:[],
-hover:null,hoverPath:null,flagMode:false,knifeMode:false,diff:null,stateT:0};
+hover:null,hoverPath:null,flagMode:false,knifeMode:false,diff:null,rot:0,stateT:0};
 var now=0;
+var ROTANIM = {
+  active: false,
+  t: 1,        // 0..1, 1 = анимация завершена
+  dur: 0.45,   // длительность поворота в секундах
+  dir: 0
+};
 var wormT=0; // таймер перемещения подземных червей
 var lastH=-1,lastMH=-1,lastAr=false,lastM=-999,lastG=-1,lastT='',lastF=-1,lastK='',lastScore=-1;
 var scoreSubmitted=false;
 var currentEndScore=0;var revealQueue=[],parts=[],texts=[],bats=[],nextBat=4000;
 function idx(x,y){return y*G.N+x;}
 function cellAt(x,y){if(x<0||y<0||x>=G.N||y>=G.N)return null;return G.grid[idx(x,y)];}
-function isoX(x,y){return (x-y)*TW2;}
-function isoY(x,y){return (x+y)*TH2;}
+function viewXY(x,y){
+  var n = G.N - 1;
+
+  switch(G.rot || 0){
+    case 1:
+      return {x:n-y, y:x};
+
+    case 2:
+      return {x:n-x, y:n-y};
+
+    case 3:
+      return {x:y, y:n-x};
+
+    default:
+      return {x:x, y:y};
+  }
+}
+
+function unviewXY(vx,vy){
+  var n = G.N - 1;
+
+  switch(G.rot || 0){
+    case 1:
+      return {x:vy, y:n-vx};
+
+    case 2:
+      return {x:n-vx, y:n-vy};
+
+    case 3:
+      return {x:n-vy, y:vx};
+
+    default:
+      return {x:vx, y:vy};
+  }
+}
+
+function isoX(x,y){
+  var v = viewXY(x,y);
+  return (v.x - v.y) * TW2;
+}
+
+function isoY(x,y){
+  var v = viewXY(x,y);
+  return (v.x + v.y) * TH2;
+}
+
+function viewDepth(x,y){
+  var v = viewXY(x,y);
+  return v.x + v.y;
+}
+
+function wallGlow(c, side){
+  var v = viewXY(c.x, c.y);
+  var p0, p1;
+
+  // side 0: левая/задняя грань, аналог x === 0
+  if(side === 0){
+    p0 = unviewXY(v.x, v.y + 0.5);
+    p1 = unviewXY(v.x, v.y - 0.5);
+  }
+
+  // side 1: верхняя/правая грань, аналог y === 0
+  else if(side === 1){
+    p0 = unviewXY(v.x - 0.5, v.y);
+    p1 = unviewXY(v.x + 0.5, v.y);
+  }
+
+  // side 2: правая/нижняя грань, аналог x === G.N-1
+  else if(side === 2){
+    p0 = unviewXY(v.x + 0.5, v.y - 0.5);
+    p1 = unviewXY(v.x + 0.5, v.y + 0.5);
+  }
+
+  // side 3: левая/нижняя грань, аналог y === G.N-1
+  else{
+    p0 = unviewXY(v.x - 0.5, v.y + 0.5);
+    p1 = unviewXY(v.x + 0.5, v.y + 0.5);
+  }
+
+  return [p0, p1];
+}
+
+function viewDirToWorld(vdx, vdy){
+  switch(G.rot || 0){
+    case 1:
+      return {dx:vdy, dy:-vdx};
+
+    case 2:
+      return {dx:-vdx, dy:-vdy};
+
+    case 3:
+      return {dx:-vdy, dy:vdx};
+
+    default:
+      return {dx:vdx, dy:vdy};
+  }
+}
+
+function buildOrder(){
+  G.order = [];
+
+  for(var s = 0; s <= 2 * G.N - 2; s++){
+    for(var vx = Math.max(0, s - G.N + 1); vx <= Math.min(G.N - 1, s); vx++){
+      var vy = s - vx;
+      var w = unviewXY(vx, vy);
+
+      G.order.push(
+        G.grid[idx(Math.round(w.x), Math.round(w.y))]
+      );
+    }
+  }
+}
+
+function rotateView(dir){
+  if(!G.N) return;
+  if(G.state !== 'play' && G.state !== 'demo') return;
+
+  // Если уже крутим — игнорируем
+  if(ROTANIM.active) return;
+
+  // Чтобы не ломать сегмент движения героя, не крутим во время шага.
+  // Если хочешь разрешить поворот в любой момент, этот блок можно убрать,
+  // но тогда придётся отдельно интерполировать движение героя.
+  if(G.state === 'play' && (G.hero.seg || G.hero.queue.length || G.hero.pending)) return;
+
+  SND.ensure();
+  SND.click();
+
+  var i, c, tp, h = G.hero;
+
+  // ---------- 1. Запоминаем старые позиции ----------
+  for(i = 0; i < G.grid.length; i++){
+    c = G.grid[i];
+    c._fx = isoX(c.x, c.y);
+    c._fy = isoY(c.x, c.y) + TH2;
+    c._fd = viewDepth(c.x, c.y);
+  }
+
+  if(G.torches){
+    for(i = 0; i < G.torches.length; i++){
+      tp = G.torches[i];
+
+      // старая экранная позиция
+      tp._fx = isoX(tp.x, tp.y);
+      tp._fy = isoY(tp.x, tp.y) + TH2;
+
+      // старые мировые координаты
+      tp._fwx = tp.x;
+      tp._fwy = tp.y;
+
+      // старая глубина
+      tp._fd = viewDepth(tp.x, tp.y);
+    }
+  }
+
+  h._fx = isoX(h.rx, h.ry);
+  h._fy = isoY(h.rx, h.ry) + TH2;
+  h._fd = viewDepth(h.rx, h.ry);
+
+  // ---------- 2. Переключаем поворот ----------
+  G.rot = (G.rot + dir + 4) % 4;
+
+  // Новый порядок отрисовки и новые позиции факелов
+  buildOrder();
+  updateTorchPositions();
+
+  // ---------- 3. Запоминаем новые позиции ----------
+  for(i = 0; i < G.grid.length; i++){
+    c = G.grid[i];
+    c._tx = isoX(c.x, c.y);
+    c._ty = isoY(c.x, c.y) + TH2;
+    c._td = viewDepth(c.x, c.y);
+  }
+
+  if(G.torches){
+    for(i = 0; i < G.torches.length; i++){
+      tp = G.torches[i];
+
+      // новая экранная позиция
+      tp._tx = isoX(tp.x, tp.y);
+      tp._ty = isoY(tp.x, tp.y) + TH2;
+
+      // новые мировые координаты
+      tp._twx = tp.x;
+      tp._twy = tp.y;
+
+      // новая глубина
+      tp._td = viewDepth(tp.x, tp.y);
+
+      // Пока анимация не началась, возвращаем мировые координаты факелов
+      // в старое положение, чтобы свет не прыгнул мгновенно.
+      // Во время анимации мы будем плавно интерполировать их в frame().
+      tp.x = tp._fwx;
+      tp.y = tp._fwy;
+    }
+  }
+
+  h._tx = isoX(h.rx, h.ry);
+  h._ty = isoY(h.rx, h.ry) + TH2;
+  h._td = viewDepth(h.rx, h.ry);
+
+  // ---------- 4. Чистим временные визуальные штуки ----------
+  G.hover = null;
+  G.hoverPath = null;
+  parts.length = 0;
+  texts.length = 0;
+
+  // ---------- 5. Запускаем анимацию ----------
+  ROTANIM.active = true;
+  ROTANIM.t = 0;
+  ROTANIM.dir = dir;
+}
+function finishRotAnim(){
+  if(!ROTANIM.active) return;
+
+  ROTANIM.active = false;
+  ROTANIM.t = 1;
+
+  if(G.torches){
+    for(var i = 0; i < G.torches.length; i++){
+      var tp = G.torches[i];
+      if(tp._twx !== undefined){
+        tp.x = tp._twx;
+        tp.y = tp._twy;
+      }
+    }
+  }
+
+  buildOrder();
+  updateTorchPositions();
+
+  G.hover = null;
+  G.hoverPath = null;
+}
+
+function animEase(){
+  return ease(clamp(ROTANIM.t, 0, 1));
+}
+
+function cellPos(c){
+  if(ROTANIM.active && c._fx !== undefined && c._tx !== undefined){
+    var e = animEase();
+    return {
+      x: lerp(c._fx, c._tx, e),
+      y: lerp(c._fy, c._ty, e)
+    };
+  }
+
+  return {
+    x: isoX(c.x, c.y),
+    y: isoY(c.x, c.y) + TH2
+  };
+}
+
+function torchPos(tp){
+  if(ROTANIM.active && tp._fx !== undefined && tp._tx !== undefined){
+    var e = animEase();
+    return {
+      x: lerp(tp._fx, tp._tx, e),
+      y: lerp(tp._fy, tp._ty, e)
+    };
+  }
+
+  return {
+    x: isoX(tp.x, tp.y),
+    y: isoY(tp.x, tp.y) + TH2
+  };
+}
+
+function heroScreenPos(){
+  var h = G.hero;
+
+  if(ROTANIM.active && h._fx !== undefined && h._tx !== undefined){
+    var e = animEase();
+    return {
+      x: lerp(h._fx, h._tx, e),
+      y: lerp(h._fy, h._ty, e)
+    };
+  }
+
+  return {
+    x: isoX(h.rx, h.ry),
+    y: isoY(h.rx, h.ry) + TH2
+  };
+}
+
+function depthOf(c){
+  if(ROTANIM.active && c._fd !== undefined && c._td !== undefined){
+    return lerp(c._fd, c._td, animEase());
+  }
+  return viewDepth(c.x, c.y);
+}
+
+function torchDepth(tp){
+  if(ROTANIM.active && tp._fd !== undefined && tp._td !== undefined){
+    return lerp(tp._fd, tp._td, animEase());
+  }
+  return viewDepth(tp.x, tp.y);
+}
+
+function heroDepth(){
+  var h = G.hero;
+
+  if(ROTANIM.active && h._fd !== undefined && h._td !== undefined){
+    return lerp(h._fd, h._td, animEase());
+  }
+
+  return viewDepth(h.rx, h.ry);
+}
+function updateTorchPositions(){
+  if(!G || !G.N || !G.torches) return;
+
+  // Базовые координаты факелов в VIEW-пространстве.
+  // То есть там, где они должны стоять визуально при любом повороте.
+  var baseView = [
+    {x:G.N - 2.0, y:-1.5},
+    {x:-1.5, y:G.N - 2.0}
+  ];
+
+  for(var i = 0; i < G.torches.length; i++){
+    var bv = baseView[i] || baseView[0];
+    var w = unviewXY(bv.x, bv.y);
+
+    G.torches[i].x = w.x;
+    G.torches[i].y = w.y;
+  }
+}
 function neighbors8(c){
 var r=[];
 for(var dy=-1;dy<=1;dy++){for(var dx=-1;dx<=1;dx++){
@@ -979,12 +1312,13 @@ counts[t]=(counts[t]||0)+1;
 return t;
 }
 function newGame(d,demo){
+ROTANIM.active = false;
+ROTANIM.t = 1;
+
 G.diff=d;G.N=d.size;G.mines=d.mines;G.grid=[];G.order=[];
 var rnd=mulberry(demo?13377:((Math.random()*1e9)|0));
 for(var y=0;y<G.N;y++){for(var x=0;x<G.N;x++){G.grid.push(makeCell(x,y,rnd));}}
-for(var s=0;s<=2*G.N-2;s++){
-for(var x2=Math.max(0,s-G.N+1);x2<=Math.min(G.N-1,s);x2++){G.order.push(G.grid[idx(x2,s-x2)]);}
-}
+buildOrder();
 G.flags=0;G.firstDone=false;G.started=false;
 G.state=demo?'demo':'play';G.lightBonus=0;G.fogLift=false;G.revealedSafe=0;
 G.totalSafe=G.N*G.N-G.mines;
@@ -992,7 +1326,10 @@ var cs=Math.floor(G.N/2),c=cellAt(cs,cs);
 c.revealed=true;c.stair=true;G.revealedSafe=1;
 var h=G.hero;h.cx=cs;h.cy=cs;h.rx=cs;h.ry=cs;h.seg=null;h.queue=[];h.pending=null;h.face=1;h.last={x:cs,y:cs};
 revealQueue.length=0;texts.length=0;
-G.torches=[{x:G.N-2.0,y:-1.5},{x:-1.5,y:G.N-2.0}];
+G.torches=[
+  {x:G.N-2.0, y:-1.5, tilt:-0.12},
+  {x:-1.5, y:G.N-2.0, tilt:0.12}
+];
 for(var ti=0;ti<G.torches.length;ti++){G.torches[ti].fl=Math.random()*9;}
 var mx=W<760?26:90,my=H<600?120:150;
 var fit=Math.min((W-mx)/(G.N*TW+TW),(H-my)/(G.N*TH+WALL*2));
@@ -1074,6 +1411,7 @@ RUN.kills=0;RUN.goldEarned=0;RUN.time=0;RUN.diff=d;RUN.newRec=false;
 scoreSubmitted=false;
 lastScore=-1;
 currentEndScore=0;
+G.rot=0;
 newFloor();
 document.getElementById('title').classList.add('hidden');
 document.getElementById('end').classList.add('hidden');
@@ -1601,6 +1939,7 @@ else checkWin();
 }
 // Нож: щит скелета и каменная шкура хранителя
 function throwKnife(c){
+if(ROTANIM.active) return;
 if(RUN.knives<=0){G.knifeMode=false;return;}
 if(!c)return;
 if(!G.firstDone){toast('Сперва разведай пол — ножи не для пустоты');SND.deny();return;}
@@ -1676,7 +2015,7 @@ return false;
 }
 // Знамя: призрак, бесёнок, морозный дух
 function toggleFlag(c){
-if(!c)return;
+if(!c || ROTANIM.active) return;
 if(c.revealed){c.pulseT=now;return;}
 var px=isoX(c.x,c.y),py=isoY(c.x,c.y)+TH2;
 if(c.flagged){
@@ -1720,6 +2059,8 @@ function checkWin(){
 if(G.state==='play'&&G.revealedSafe>=G.totalSafe)victory();
 }
 function victory(){
+if(ROTANIM.active) finishRotAnim();
+
 G.state='won';G.stateT=now;G.fogLift=true;revealQueue.length=0;
 SND.win();
 var bonus=0;
@@ -1742,6 +2083,8 @@ else openCamp(bonus);
 },900+mines.length*70);
 }
 function defeat(){
+if(ROTANIM.active) finishRotAnim();
+
 G.state='lost';G.stateT=now;G.fogLift=true;revealQueue.length=0;
 RUN.active=false;
 SND.lose();
@@ -1796,13 +2139,26 @@ h.queue=cells.slice();h.pending=pending||null;
 if(h.queue.length)startSeg();
 }
 function startSeg(){
-var h=G.hero,n=h.queue.shift();
-h.last={x:h.cx,y:h.cy};
-h.seg={fx:h.cx,fy:h.cy,tx:n.x,ty:n.y};h.stepT=0;
-var dx=n.x-h.cx,dy=n.y-h.cy;
-h.fdir={dx:dx,dy:dy};
-var sdx=dx-dy;
-if(sdx!==0)h.face=sdx>0?1:-1;
+  var h = G.hero;
+  var n = h.queue.shift();
+
+  h.last = {x:h.cx, y:h.cy};
+  h.seg = {fx:h.cx, fy:h.cy, tx:n.x, ty:n.y};
+  h.stepT = 0;
+
+  var dx = n.x - h.cx;
+  var dy = n.y - h.cy;
+
+  var v0 = viewXY(h.cx, h.cy);
+  var v1 = viewXY(n.x, n.y);
+
+  var dvx = v1.x - v0.x;
+  var dvy = v1.y - v0.y;
+
+  h.fdir = {dx:dx, dy:dy};
+
+  var sdx = dvx - dvy;
+  if(sdx !== 0) h.face = sdx > 0 ? 1 : -1;
 }
 function heroUpdate(dt){
 var h=G.hero;
@@ -1846,7 +2202,7 @@ if(p)setPath(p.concat([c]),c);else setPath([c],c);
 }
 // ---------- ввод ----------
 function actCell(c){
-if(!c||G.state!=='play')return;
+if(!c || G.state !== 'play' || ROTANIM.active) return;
 if(G.knifeMode){throwKnife(c);return;}
 if(G.flagMode){toggleFlag(c);return;}
 if(c.flagged){toast('Здесь уже стоит знамя');SND.deny();return;}
@@ -1860,55 +2216,113 @@ if(!isFrontier(c)){toast('Слишком далеко — сперва разв�
 walkHidden(c);
 }
 function tryStep(dx,dy){
-if(G.state!=='play')return;
-var h=G.hero;
-if(h.seg||h.queue.length)return;
-var n=cellAt(h.cx+dx,h.cy+dy);
-if(!n)return;
-h.fdir={dx:dx,dy:dy};
-var sdx=dx-dy;
-if(sdx!==0)h.face=sdx>0?1:-1;
+if(G.state !== 'play' || ROTANIM.active) return;
+
+  var h = G.hero;
+  if(h.seg || h.queue.length) return;
+
+  var n = cellAt(h.cx + dx, h.cy + dy);
+  if(!n) return;
+
+  h.fdir = {dx:dx, dy:dy};
+
+  var v0 = viewXY(h.cx, h.cy);
+  var v1 = viewXY(h.cx + dx, h.cy + dy);
+
+  var sdx = (v1.x - v0.x) - (v1.y - v0.y);
+  if(sdx !== 0) h.face = sdx > 0 ? 1 : -1;
 if(n.flagged){toast('Знамя преграждает путь');SND.deny();return;}
 if(n.obstacle){toast('Препятствие преграждает путь');SND.deny();return;}
 if(n.revealed){setPath([n]);return;}
 setPath([n],n);
 }
 function screenToCell(px,py){
-var rect=cv.getBoundingClientRect();
-var cx=px-rect.left, cy=py-rect.top;
-var wx=(cx-rect.width/2)/G.cam.zoom+G.cam.x;
-var wy=(cy-rect.height/2)/G.cam.zoom+G.cam.y;
-var u=wx/TW2,v=(wy-TH2)/TH2;
-var fx=(u+v)/2,fy=(v-u)/2;
-var tx=Math.round(fx), ty=Math.round(fy);
-var candidates=[
-{x:tx,y:ty},{x:tx+1,y:ty},{x:tx-1,y:ty},
-{x:tx,y:ty+1},{x:tx,y:ty-1},
-{x:tx+1,y:ty+1},{x:tx+1,y:ty-1},{x:tx-1,y:ty+1},{x:tx-1,y:ty-1}
-];
-var best=null, bestDist=Infinity;
-for(var i=0;i<candidates.length;i++){
-var c=candidates[i];
-if(c.x<0||c.y<0||c.x>=G.N||c.y>=G.N)continue;
-var dist=Math.abs(fx-c.x)+Math.abs(fy-c.y);
-if(dist<=1 && dist<bestDist){bestDist=dist;best=c;}
-}
-if(!best){
-for(var j=0;j<candidates.length;j++){
-var c2=candidates[j];
-if(c2.x<0||c2.y<0||c2.x>=G.N||c2.y>=G.N)continue;
-var d2=Math.hypot(fx-c2.x,fy-c2.y);
-if(d2<bestDist){bestDist=d2;best=c2;}
-}
-}
-if(!best)return null;
-return G.grid[idx(best.x,best.y)];
+  var rect = cv.getBoundingClientRect();
+  var cx = px - rect.left;
+  var cy = py - rect.top;
+
+  var wx = (cx - rect.width / 2) / G.cam.zoom + G.cam.x;
+  var wy = (cy - rect.height / 2) / G.cam.zoom + G.cam.y;
+
+  var u = wx / TW2;
+  var v = (wy - TH2) / TH2;
+
+  var fx = (u + v) / 2;
+  var fy = (v - u) / 2;
+
+  var tvx = Math.round(fx);
+  var tvy = Math.round(fy);
+
+  var candidates = [
+    {x:tvx, y:tvy},
+    {x:tvx + 1, y:tvy},
+    {x:tvx - 1, y:tvy},
+    {x:tvx, y:tvy + 1},
+    {x:tvx, y:tvy - 1},
+    {x:tvx + 1, y:tvy + 1},
+    {x:tvx + 1, y:tvy - 1},
+    {x:tvx - 1, y:tvy + 1},
+    {x:tvx - 1, y:tvy - 1}
+  ];
+
+  var best = null;
+  var bestDist = Infinity;
+
+  for(var i = 0; i < candidates.length; i++){
+    var vc = candidates[i];
+    var w = unviewXY(vc.x, vc.y);
+
+    var rx = Math.round(w.x);
+    var ry = Math.round(w.y);
+
+    if(rx < 0 || ry < 0 || rx >= G.N || ry >= G.N) continue;
+
+    var dist = Math.abs(fx - vc.x) + Math.abs(fy - vc.y);
+
+    if(dist <= 1 && dist < bestDist){
+      bestDist = dist;
+      best = {x:rx, y:ry};
+    }
+  }
+
+  if(!best){
+    for(var j = 0; j < candidates.length; j++){
+      var vc2 = candidates[j];
+      var w2 = unviewXY(vc2.x, vc2.y);
+
+      var rx2 = Math.round(w2.x);
+      var ry2 = Math.round(w2.y);
+
+      if(rx2 < 0 || ry2 < 0 || rx2 >= G.N || ry2 >= G.N) continue;
+
+      var d2 = Math.hypot(fx - vc2.x, fy - vc2.y);
+
+      if(d2 < bestDist){
+        bestDist = d2;
+        best = {x:rx2, y:ry2};
+      }
+    }
+  }
+
+  if(!best) return null;
+
+  return G.grid[idx(best.x, best.y)];
 }
 var lpTimer=null,lpDone=false,downPos=null;
 cv.addEventListener('contextmenu',function(e){e.preventDefault();});
 cv.addEventListener('pointermove',function(e){
-if(lpTimer&&downPos&&Math.hypot(e.clientX-downPos.x,e.clientY-downPos.y)>14){clearTimeout(lpTimer);lpTimer=null;}
-if(e.pointerType!=='mouse')return;
+if(lpTimer && downPos && Math.hypot(e.clientX-downPos.x,e.clientY-downPos.y)>14){
+  clearTimeout(lpTimer);
+  lpTimer = null;
+}
+
+if(ROTANIM.active){
+  G.hover = null;
+  G.hoverPath = null;
+  return;
+}
+
+if(e.pointerType !== 'mouse') return;
 G.hover=screenToCell(e.clientX,e.clientY);
 computeHoverPath();
 var c=G.hover;
@@ -1917,7 +2331,13 @@ cv.style.cursor=act?(G.knifeMode?'crosshair':'pointer'):'default';
 });
 cv.addEventListener('pointerdown',function(e){
 SND.ensure();
-if(e.button===2){toggleFlag(screenToCell(e.clientX,e.clientY));return;}
+
+if(ROTANIM.active) return;
+
+if(e.button===2){
+  toggleFlag(screenToCell(e.clientX,e.clientY));
+  return;
+}
 if(e.button!==0)return;
 downPos={x:e.clientX,y:e.clientY};lpDone=false;
 if(e.pointerType==='touch'){
@@ -1931,9 +2351,21 @@ actCell(screenToCell(e.clientX,e.clientY));
 }
 });
 cv.addEventListener('pointerup',function(e){
-if(lpTimer){clearTimeout(lpTimer);lpTimer=null;}
-if(e.pointerType==='touch'&&!lpDone&&downPos)actCell(screenToCell(downPos.x,downPos.y));
-downPos=null;
+if(lpTimer){
+  clearTimeout(lpTimer);
+  lpTimer = null;
+}
+
+if(ROTANIM.active){
+  downPos = null;
+  return;
+}
+
+if(e.pointerType === 'touch' && !lpDone && downPos){
+  actCell(screenToCell(downPos.x, downPos.y));
+}
+
+downPos = null;
 });
 function isUiOverlayOpen(){
 return !document.getElementById('title').classList.contains('hidden')
@@ -1951,7 +2383,7 @@ addEventListener('wheel',function(e){
     G.cam.tzoom=clamp(G.cam.tzoom*Math.exp(-e.deltaY*.0012),.5,2);
   }
 },{passive:true});var keys=new Set();
-var KEYDIR={
+var KEYDIR_VIEW={
 w:[-1,-1], arrowup:[-1,-1],
 s:[1,1], arrowdown:[1,1],
 a:[-1,1], arrowleft:[-1,1],
@@ -1985,6 +2417,8 @@ if(paused)return;
 if(G.state!=='play')return;
 if(k==='k'){toggleKnife();return;}
 if(k==='f'){toggleFlagMode();return;}
+if(k==='['){rotateView(-1);return;}
+if(k===']'){rotateView(1);return;}
 if(k==='w'||k==='arrowup')keys.add('w');
 else if(k==='s'||k==='arrowdown')keys.add('s');
 else if(k==='a'||k==='arrowleft')keys.add('a');
@@ -2002,13 +2436,23 @@ if(k==='a'||k==='arrowleft')keys.delete('a');
 if(k==='d'||k==='arrowright')keys.delete('d');
 });
 function keysAutoStep(){
-if(G.state!=='play')return;
-var h=G.hero;
-if(h.seg||h.queue.length)return;
-var arr=['w','a','s','d'];
-for(var i=0;i<arr.length;i++){
-if(keys.has(arr[i])){tryStep(KEYDIR[arr[i]][0],KEYDIR[arr[i]][1]);return;}
-}
+  if(G.state !== 'play') return;
+
+  var h = G.hero;
+  if(h.seg || h.queue.length) return;
+
+  var arr = ['w','a','s','d'];
+
+  for(var i = 0; i < arr.length; i++){
+    if(keys.has(arr[i])){
+      var vd = KEYDIR_VIEW[arr[i]];
+      var wd = viewDirToWorld(vd[0], vd[1]);
+
+      tryStep(wd.dx, wd.dy);
+
+      return;
+    }
+  }
 }
 function computeHoverPath(){
 G.hoverPath=null;
@@ -2046,10 +2490,18 @@ ctx.beginPath();
 ctx.moveTo(cx,cy-sy);ctx.lineTo(cx+sx,cy);ctx.lineTo(cx,cy+sy);ctx.lineTo(cx-sx,cy);ctx.closePath();
 }
 function drawTileBase(c){
-var cx=isoX(c.x,c.y),cy=isoY(c.x,c.y)+TH2;
-var b=brightOf(c);
-var jit=.9+((c.seed*7)%10)/50+((c.x+c.y)%2?.03:0);
-if(c.x===0){
+var cp = cellPos(c);
+var cx = cp.x;
+var cy = cp.y;
+
+var b = brightOf(c);
+var jit = .9 + ((c.seed * 7) % 10) / 50 + ((c.x + c.y) % 2 ? .03 : 0);
+var v = viewXY(c.x, c.y);
+
+// Во время поворота стены лучше не рисовать,
+// иначе боковые грани будут выглядеть странно при перелёте плиток.
+var wallsVisible = !ROTANIM.active;
+if(wallsVisible && v.x===0){
 ctx.fillStyle=stoneCol(b,.45,jit);
 ctx.beginPath();
 ctx.moveTo(cx-TW2,cy);
@@ -2084,10 +2536,11 @@ ctx.fill();
 ctx.save();
 ctx.translate(cx-TW2,cy);
 ctx.transform(1,-TH2/TW2,0,1,0,0);
-torchWallGlow(0,c.y+0.5,0,c.y-0.5,TW2,WALL);
+var gp0=wallGlow(c,0);
+torchWallGlow(gp0[0].x,gp0[0].y,gp0[1].x,gp0[1].y,TW2,WALL);
 ctx.restore();
 }
-if(c.y===0){
+if(wallsVisible && v.y===0){
 ctx.fillStyle=stoneCol(b,.35,jit);
 ctx.beginPath();
 ctx.moveTo(cx,cy-TH2);
@@ -2123,26 +2576,29 @@ ctx.fill();
 ctx.save();
 ctx.translate(cx,cy-TH2);
 ctx.transform(1,TH2/TW2,0,1,0,0);
-torchWallGlow(c.x-0.5,0,c.x+0.5,0,TW2,WALL);
+var gp1=wallGlow(c,1);
+torchWallGlow(gp1[0].x,gp1[0].y,gp1[1].x,gp1[1].y,TW2,WALL);
 ctx.restore();
 }
-if(c.x===G.N-1){
+if(wallsVisible && v.x===G.N-1){
 ctx.fillStyle=stoneCol(b,.42,jit);
 ctx.beginPath();ctx.moveTo(cx+TW2,cy);ctx.lineTo(cx,cy+TH2);ctx.lineTo(cx,cy+TH2+WALL/2);ctx.lineTo(cx+TW2,cy+WALL/2);ctx.closePath();ctx.fill();
 ctx.save();
 ctx.translate(cx+TW2,cy);
 ctx.transform(1,-TH2/TW2,0,1,0,0);
 ctx.scale(-1,1);
-torchWallGlow(c.x+0.5,c.y-0.5,c.x+0.5,c.y+0.5,TW2,WALL);
+var gp2=wallGlow(c,2);
+torchWallGlow(gp2[0].x,gp2[0].y,gp2[1].x,gp2[1].y,TW2,WALL);
 ctx.restore();
 }
-if(c.y===G.N-1){
+if(wallsVisible && v.y===G.N-1){
 ctx.fillStyle=stoneCol(b,.3,jit);
 ctx.beginPath();ctx.moveTo(cx-TW2,cy);ctx.lineTo(cx,cy+TH2);ctx.lineTo(cx,cy+TH2+WALL/2);ctx.lineTo(cx-TW2,cy+WALL/2);ctx.closePath();ctx.fill();
 ctx.save();
 ctx.translate(cx-TW2,cy);
 ctx.transform(1,TH2/TW2,0,1,0,0);
-torchWallGlow(c.x-0.5,c.y+0.5,c.x+0.5,c.y+0.5,TW2,WALL);
+var gp3=wallGlow(c,3);
+torchWallGlow(gp3[0].x,gp3[0].y,gp3[1].x,gp3[1].y,TW2,WALL);
 ctx.restore();
 }
 ctx.fillStyle=stoneCol(b,1,jit);
@@ -2277,7 +2733,8 @@ ctx.stroke();
 ctx.strokeStyle = stoneCol(b, 0.3, jit);
 ctx.lineWidth = 1.5;
 ctx.strokeRect(0, -WALL_H, SW, WALL_H);
-torchWallGlow(c.x-0.5,c.y+0.5,c.x+0.5,c.y+0.5,SW,WALL_H);
+var gpObL=wallGlow(c,3);
+torchWallGlow(gpObL[0].x,gpObL[0].y,gpObL[1].x,gpObL[1].y,SW,WALL_H);
 ctx.restore();
 ctx.save();
 ctx.translate(cx + SW, cy);
@@ -2308,7 +2765,8 @@ ctx.stroke();
 ctx.strokeStyle = stoneCol(b, 0.2, jit);
 ctx.lineWidth = 1.5;
 ctx.strokeRect(0, -WALL_H, SW, WALL_H);
-torchWallGlow(c.x+0.5,c.y-0.5,c.x+0.5,c.y+0.5,SW,WALL_H);
+var gpObR=wallGlow(c,2);
+torchWallGlow(gpObR[0].x,gpObR[0].y,gpObR[1].x,gpObR[1].y,SW,WALL_H);
 ctx.restore();
 ctx.strokeStyle = 'rgba(0,0,0,' + (0.5 * clamp(b*1.2, 0, 1)) + ')';
 ctx.lineWidth = 1.5;
@@ -2518,7 +2976,9 @@ ctx.restore();
 }
 // ---------- монстры ----------
 function drawMonster(c){
-var px=isoX(c.x,c.y),py=isoY(c.x,c.y)+TH2;
+var mp = cellPos(c);
+var px = mp.x;
+var py = mp.y;
 var sc=1,offy=0,alpha=1;
 if(c.mstate===1){
 var a=(now-c.mT)/300;
@@ -3447,8 +3907,12 @@ var h=G.hero;
 var t=h.seg?ease(clamp(h.stepT,0,1)):0;
 var rx=h.seg?lerp(h.seg.fx,h.seg.tx,t):h.cx;
 var ry=h.seg?lerp(h.seg.fy,h.seg.ty,t):h.cy;
-h.rx=rx;h.ry=ry;
-var px=isoX(rx,ry),py=isoY(rx,ry)+TH2;
+h.rx=rx;
+h.ry=ry;
+
+var hp = heroScreenPos();
+var px = hp.x;
+var py = hp.y;
 var hop=h.seg?Math.sin(Math.PI*clamp(h.stepT,0,1))*7:0;
 var bob=h.seg?0:Math.sin(now*.003)*1.6;
 ctx.save();ctx.translate(px,py);
@@ -3479,17 +3943,60 @@ addP({x:px+f*16,y:py-hop-bob-30,z:0,vx:rand(-6,6),vz:rand(18,40),life:rand(.4,.9
 }
 }
 function drawTorchPost(tp){
-var px=isoX(tp.x,tp.y),py=isoY(tp.x,tp.y)+TH2;
-ctx.save();ctx.translate(px,py);
-ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.ellipse(0,2,7,3,0,0,Math.PI*2);ctx.fill();
-ctx.strokeStyle='#3f3327';ctx.lineWidth=3.4;
-ctx.beginPath();ctx.moveTo(0,2);ctx.lineTo(0,-28);ctx.stroke();
-ctx.strokeStyle='#5b4230';ctx.lineWidth=2;
-ctx.beginPath();ctx.moveTo(-4,-28);ctx.lineTo(4,-28);ctx.stroke();
+if(ROTANIM.active) return;
+var tpos = torchPos(tp);
+var px = tpos.x;
+var py = tpos.y;
+var tilt = tp.tilt || 0;
+ctx.save();
+ctx.translate(px,py);
+
+// Тень оставляем на полу без наклона
+ctx.fillStyle='rgba(0,0,0,.4)';
+ctx.beginPath();
+ctx.ellipse(0,2,7,3,0,0,Math.PI*2);
+ctx.fill();
+
+// Наклоняем сам факел и пламя
+ctx.save();
+ctx.rotate(tilt);
+
+ctx.strokeStyle='#3f3327';
+ctx.lineWidth=3.4;
+ctx.beginPath();
+ctx.moveTo(0,2);
+ctx.lineTo(0,-28);
+ctx.stroke();
+
+ctx.strokeStyle='#5b4230';
+ctx.lineWidth=2;
+ctx.beginPath();
+ctx.moveTo(-4,-28);
+ctx.lineTo(4,-28);
+ctx.stroke();
+
 drawFlame(0,-33,1.15);
+
 ctx.restore();
+ctx.restore();
+
+// Искры теперь должны лететь примерно из наклонённого пламени
+var fx = px + Math.sin(tilt) * 33;
+var fy = py - Math.cos(tilt) * 33;
+
 if(Math.random()<.2){
-addP({x:px,y:py-33,z:0,vx:rand(-5,5),vz:rand(15,35),life:rand(.5,1),size:rand(1,1.8),col:choice(['#ffcf6e','#ff9c3f']),glow:true,drag:.98});
+addP({
+x:fx,
+y:fy,
+z:0,
+vx:rand(-5,5),
+vz:rand(15,35),
+life:rand(.5,1),
+size:rand(1,1.8),
+col:choice(['#ffcf6e','#ff9c3f']),
+glow:true,
+drag:.98
+});
 }
 }
 // ---------- камера ----------
@@ -3502,8 +4009,9 @@ var mx=W<760?26:90,my=H<600?120:150;
 var fit=Math.min((W-mx)/(G.N*TW+TW),(H-my)/(G.N*TH+WALL*2));
 z.tzoom=clamp(fit*(1+.03*Math.sin(now*.0004)),.35,1.5);
 }else{
-tx=isoX(G.hero.rx,G.hero.ry);
-ty=isoY(G.hero.rx,G.hero.ry)+TH2-10;
+var hp = heroScreenPos();
+tx = hp.x;
+ty = hp.y - 10;
 }
 var k=1-Math.pow(.002,dt);
 z.x+=(tx-z.x)*k;z.y+=(ty-z.y)*k;
@@ -3712,43 +4220,95 @@ var shx=(Math.random()*2-1)*G.shake,shy=(Math.random()*2-1)*G.shake;
 G.shake*=Math.pow(.02,dt);
 if(G.shake<.3)G.shake=0;
 ctx.save();
-ctx.translate(W/2+shx,H/2+shy);
-ctx.scale(G.cam.zoom,G.cam.zoom);
-ctx.translate(-G.cam.x,-G.cam.y);
-for(var oi=0;oi<G.order.length;oi++){drawTileBase(G.order[oi]);}
+
+var rotFade = ROTANIM.active ? Math.sin(Math.PI * clamp(ROTANIM.t, 0, 1)) : 0;
+
+ctx.translate(W/2 + shx, H/2 + shy);
+ctx.scale(G.cam.zoom, G.cam.zoom);
+ctx.translate(-G.cam.x, -G.cam.y);
+
+if(ROTANIM.active){
+  ctx.globalAlpha = 1 - 0.25 * rotFade;
+}
+var renderOrder = G.order;
+
+if(ROTANIM.active){
+  renderOrder = G.grid.slice();
+  var rotE = animEase();
+
+  renderOrder.sort(function(a, b){
+    var da = (a._fd !== undefined) ? lerp(a._fd, a._td, rotE) : viewDepth(a.x, a.y);
+    var db = (b._fd !== undefined) ? lerp(b._fd, b._td, rotE) : viewDepth(b.x, b.y);
+    return da - db;
+  });
+}
+
+for(var oi = 0; oi < renderOrder.length; oi++){
+  drawTileBase(renderOrder[oi]);
+}
 if(G.hoverPath){
-ctx.fillStyle='rgba(255,200,110,.3)';
-for(var pi=0;pi<G.hoverPath.length;pi++){
-var p=G.hoverPath[pi];
-ctx.beginPath();ctx.arc(isoX(p.x,p.y),isoY(p.x,p.y)+TH2,2.6,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle = 'rgba(255,200,110,.3)';
+
+  for(var pi = 0; pi < G.hoverPath.length; pi++){
+    var p = G.hoverPath[pi];
+    var pcp = cellPos(p);
+
+    ctx.beginPath();
+    ctx.arc(pcp.x, pcp.y, 2.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
-}
-var hc=G.hover;
-if(hc&&G.state==='play'){
-var pul=.35+.25*Math.sin(now*.006);
-ctx.strokeStyle=hc.flagged?'rgba(255,110,90,'+pul+')':'rgba(255,200,110,'+pul+')';
-ctx.lineWidth=2.2;
-dia(isoX(hc.x,hc.y),isoY(hc.x,hc.y)+TH2,TW2-2,TH2-1);ctx.stroke();
+var hc = G.hover;
+
+if(hc && G.state === 'play'){
+  var pul = .35 + .25 * Math.sin(now * .006);
+  var hcp = cellPos(hc);
+
+  ctx.strokeStyle = hc.flagged
+    ? 'rgba(255,110,90,' + pul + ')'
+    : 'rgba(255,200,110,' + pul + ')';
+
+  ctx.lineWidth = 2.2;
+  dia(hcp.x, hcp.y, TW2 - 2, TH2 - 1);
+  ctx.stroke();
 }
 var ents=[];
 for(var ci=0;ci<G.grid.length;ci++){
 var c=G.grid[ci];
-if(c.mine&&c.mstate>0&&c.revealed){
-(function(cc){ents.push({d:cc.x+cc.y,f:function(){drawMonster(cc);}});})(c);
+if(c.mine && c.mstate > 0 && c.revealed){
+  (function(cc){
+    ents.push({
+      d: depthOf(cc),
+      f: function(){ drawMonster(cc); }
+    });
+  })(c);
 }
 if(c.obstacle && c.revealed){
-(function(cc){
-ents.push({
-d: cc.x + cc.y + 0.1,
-f: function(){ drawObstacle(cc, isoX(cc.x,cc.y), isoY(cc.x,cc.y)+TH2); }
-});
-})(c);
+  (function(cc){
+    ents.push({
+      d: depthOf(cc) + 0.1,
+      f: function(){
+        var cp = cellPos(cc);
+        drawObstacle(cc, cp.x, cp.y);
+      }
+    });
+  })(c);
 }
 }
-for(var ti=0;ti<G.torches.length;ti++){
-(function(tp){ents.push({d:tp.x+tp.y,f:function(){drawTorchPost(tp);}});})(G.torches[ti]);
+for(var ti = 0; ti < G.torches.length; ti++){
+  (function(tp){
+    ents.push({
+      d: torchDepth(tp),
+      f: function(){ drawTorchPost(tp); }
+    });
+  })(G.torches[ti]);
 }
-if(G.state!=='demo')ents.push({d:G.hero.rx+G.hero.ry,f:drawHero});
+if(G.state !== 'demo'){
+  ents.push({
+    d: heroDepth(),
+    f: drawHero
+  });
+}
 ents.sort(function(a,b){return a.d-b.d;});
 for(var ei=0;ei<ents.length;ei++){ents[ei].f();}
 ctx.save();
@@ -3790,18 +4350,53 @@ var lastTs=performance.now();
 function frame(ts){
 var dt=clamp((ts-lastTs)/1000,0,.05);
 lastTs=ts;now=ts;
+
 if(paused){ requestAnimationFrame(frame); return; }
-if(RUN.active&&G.state==='play')RUN.time+=dt;
-if(G.state==='play'){
-while(revealQueue.length&&revealQueue[0].t<=now){
-var e=revealQueue.shift();
-resolveReveal(e.c,e.w);
+
+// ---------- обновление анимации поворота ----------
+if(ROTANIM.active){
+  ROTANIM.t = Math.min(1, ROTANIM.t + dt / ROTANIM.dur);
+
+  var re = animEase();
+
+  // Плавно двигаем мировые координаты факелов,
+  // чтобы свет тоже перемещался более мягко.
+  if(G.torches){
+    for(var rti = 0; rti < G.torches.length; rti++){
+      var rtp = G.torches[rti];
+      if(rtp._fwx !== undefined && rtp._twx !== undefined){
+        rtp.x = lerp(rtp._fwx, rtp._twx, re);
+        rtp.y = lerp(rtp._fwy, rtp._twy, re);
+      }
+    }
+  }
+
+  if(ROTANIM.t >= 1){
+    finishRotAnim();
+  }
 }
-keysAutoStep();
-heroUpdate(dt);
-// Подземные черви переползают каждые 12 секунд
-wormT+=dt;
-if(wormT>=12){wormT-=12;moveWorms();}
+
+// Пока идёт анимация, игровую логику лучше поставить на паузу,
+// чтобы новые события не появлялись в старых/новых координатах.
+if(!ROTANIM.active){
+  if(RUN.active && G.state === 'play') RUN.time += dt;
+
+  if(G.state === 'play'){
+    while(revealQueue.length && revealQueue[0].t <= now){
+      var e = revealQueue.shift();
+      resolveReveal(e.c, e.w);
+    }
+
+    keysAutoStep();
+    heroUpdate(dt);
+
+    // Подземные черви переползают каждые 12 секунд
+    wormT += dt;
+    if(wormT >= 12){
+      wormT -= 12;
+      moveWorms();
+    }
+  }
 }
 for(var mi=0;mi<G.grid.length;mi++){
 var mc=G.grid[mi];
@@ -4038,6 +4633,7 @@ function showEnd(won){
   $('hud').classList.add('hidden');
 }function toMenu(){
 RUN.active=false;
+G.rot=0;
 G.knifeMode=false;G.flagMode=false;
 newGame({size:14,mines:44},true);
 buildCards();
@@ -4076,6 +4672,8 @@ $('btnHelpClose').addEventListener('click',function(){SND.click();toggleHelp();}
 $('btnSound').addEventListener('click',toggleSound);
 $('btnZi').addEventListener('click',function(){G.cam.tzoom=clamp(G.cam.tzoom*1.2,.35,2.2);});
 $('btnZo').addEventListener('click',function(){G.cam.tzoom=clamp(G.cam.tzoom/1.2,.35,2.2);});
+$('btnRotL').addEventListener('click',function(){rotateView(-1);});
+$('btnRotR').addEventListener('click',function(){rotateView(1);});
 $('btnFlag').addEventListener('click',function(){toggleFlagMode();});
 $('btnKnife').addEventListener('click',function(){toggleKnife();});
 $('btnBestiary').addEventListener('click',toggleBestiary);
