@@ -2,7 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05060b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Туманные Глубины — рогалик-сапёр</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕯️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +20,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);font-family:Rubik,system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+body{background:var(--bg);color:var(--text);font-family:Rubik,system-ui,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%;overscroll-behavior:none;touch-action:manipulation}
 canvas#game{position:fixed;inset:0;display:block;touch-action:none}
 #vignette{position:fixed;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse at 50% 45%, transparent 52%, rgba(2,3,8,.62) 100%)}
 #flash{position:fixed;inset:0;pointer-events:none;z-index:4;opacity:0;background:radial-gradient(ellipse at center, rgba(255,60,40,.35), rgba(180,20,10,.55))}
@@ -193,6 +197,54 @@ text-align:center;transition:.2s;position:relative;min-height:260px;display:flex
   font-size:11px;
   margin-bottom:10px;
 }
+/* ============ МОБИЛЬНАЯ АДАПТАЦИЯ ============ */
+.hint-touch{display:none}
+button,.card,.shopitem{touch-action:manipulation}
+.screen{padding:14px}
+.title-inner,.panel-big,.bestiary-panel{margin:auto} /* экраны скроллятся и не обрезаются сверху */
+#scoreName{font-size:16px} /* iOS не будет зумить при фокусе */
+.modebtn:active,.btn:active,.mini:active,.card:active{transform:scale(.96)}
+#hud{padding:14px;padding:calc(10px + env(safe-area-inset-top,0px)) calc(10px + env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) calc(10px + env(safe-area-inset-left,0px))}
+
+/* устройства с тач-экраном */
+@media(pointer:coarse){
+  .hint-desktop{display:none}
+  .hint-touch{display:inline}
+  .modebtn{padding:14px 16px;font-size:11px;min-width:104px}
+  .btn{padding:14px 18px}
+  .mini{padding:10px 12px}
+}
+
+/* маленькие экраны */
+@media(max-width:760px),(max-height:560px){
+  .panel{padding:7px 9px;gap:8px}
+  .hearts .h{font-size:16px}
+  .armorico{font-size:13px}
+  .stat{font-size:9px;gap:5px}
+  .stat .ico{font-size:11px}
+  .mini{font-size:8px;padding:9px 10px}
+  #hint{font-size:10px;max-width:58vw;line-height:1.5}
+  .modebtn{padding:12px 12px;font-size:9px;min-width:0}
+  #toast{bottom:120px;font-size:8px;line-height:1.8}
+  .lore{font-size:13px;margin:16px auto 20px}
+  .controls-line{font-size:11px}
+  .panel-big{padding:22px 16px}
+  .bestiary-panel{padding:20px 12px}
+  .bestiary-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+  .b-icon{font-size:34px;margin-bottom:8px}
+  .shopgrid{grid-template-columns:repeat(auto-fit,minmax(122px,1fr))}
+  .si-desc{min-height:44px}
+  .endstats .row,.rulesrow{font-size:13px}
+  #banner .b2{font-size:12px}
+}
+
+/* совсем узкие экраны */
+@media(max-width:420px){
+  .stat{font-size:8px;gap:4px}
+  .hearts .h{font-size:14px}
+  .actions{width:100%;justify-content:center}
+  .kicker{font-size:8px}
+}
 </style>
 </head>
 <body>
@@ -222,7 +274,7 @@ text-align:center;transition:.2s;position:relative;min-height:260px;display:flex
 </div>
 </div>
 <div class="hud-bottom">
-<div id="hint">ЛКМ — шаг · ПКМ — знамя · K — нож · F — режим знамени · WASD — ходьба · SPACE — знамя перед собой</div>
+<div id="hint"><span class="hint-desktop">ЛКМ — шаг · ПКМ — знамя · K — нож · F — режим знамени </span><span class="hint-touch">Тап — шаг и разведка · Долгий тап — знамя · ⚑ / † — режимы внизу</span></div>
 <div class="modebtns">
 <button id="btnFlag" class="modebtn">⚑ ЗНАМЯ</button>
 <button id="btnKnife" class="modebtn">† НОЖИ: 0</button>
@@ -243,7 +295,7 @@ text-align:center;transition:.2s;position:relative;min-height:260px;display:flex
 Зачистил уровень — спускайся глубже. В <b>лагере</b> между ярусами торговец продаст улучшения.
 Пятнадцать ярусов до сердца горы. Дойдёшь ли ты до конца?</p>
 <div class="cards" id="cards"></div>
-<div class="controls-line"><b>ЛКМ / тап</b> — шаг и разведка · <b>ПКМ / долгий тап</b> — знамя · <b>K</b> — метнуть нож · <b>WASD</b> — ходьба</div>
+<div class="controls-line"><span class="hint-desktop"><b>ЛКМ / тап</b> — шаг и разведка · <b>ПКМ / долгий тап</b> — знамя · <b>K</b> — метнуть нож · <b>WASD</b> — ходьба</span><span class="hint-touch"><b>Тап</b> — шаг и разведка · <b>Долгий тап</b> — знамя · Кнопки <b>⚑ ЗНАМЯ</b> и <b>† НОЖИ</b> внизу — режимы</span></div>
 <div class="btnrow" style="margin-top:20px">
   <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
 </div>
@@ -665,7 +717,8 @@ shade:rng(), off:rng()*1000
 })();
 var dustMotes=[];
 (function(){
-for(var i=0;i<30;i++){
+var dustN=innerWidth<760?16:30;
+for(var i=0;i<dustN;i++){
 dustMotes.push({
 x:Math.random()*W, y:Math.random()*H,
 vx:(Math.random()-.5)*5, vy:-0.8-Math.random()*3,
@@ -941,8 +994,9 @@ var h=G.hero;h.cx=cs;h.cy=cs;h.rx=cs;h.ry=cs;h.seg=null;h.queue=[];h.pending=nul
 revealQueue.length=0;texts.length=0;
 G.torches=[{x:G.N-2.0,y:-1.5},{x:-1.5,y:G.N-2.0}];
 for(var ti=0;ti<G.torches.length;ti++){G.torches[ti].fl=Math.random()*9;}
-var fit=Math.min((W-90)/(G.N*TW+TW),(H-150)/(G.N*TH+WALL*2));
-G.cam.zoom=clamp(fit,.55,1.4);G.cam.tzoom=G.cam.zoom;
+var mx=W<760?26:90,my=H<600?120:150;
+var fit=Math.min((W-mx)/(G.N*TW+TW),(H-my)/(G.N*TH+WALL*2));
+G.cam.zoom=clamp(fit,.35,1.5);G.cam.tzoom=G.cam.zoom;
 G.cam.x=0;G.cam.y=G.N*TH2;
 if(demo)demoSetup();
 }
@@ -3444,8 +3498,9 @@ var z=G.cam,tx,ty;
 if(G.state==='demo'){
 tx=Math.cos(now*.0002)*30;
 ty=(G.N-1)*TH2+TH2+Math.sin(now*.00016)*16;
-var fit=Math.min((W-90)/(G.N*TW+TW),(H-150)/(G.N*TH+WALL*2));
-z.tzoom=clamp(fit*(1+.03*Math.sin(now*.0004)),.5,1.4);
+var mx=W<760?26:90,my=H<600?120:150;
+var fit=Math.min((W-mx)/(G.N*TW+TW),(H-my)/(G.N*TH+WALL*2));
+z.tzoom=clamp(fit*(1+.03*Math.sin(now*.0004)),.35,1.5);
 }else{
 tx=isoX(G.hero.rx,G.hero.ry);
 ty=isoY(G.hero.rx,G.hero.ry)+TH2-10;
@@ -3492,7 +3547,8 @@ makeFogSprite(512,22,404,'140,160,190')
 ];
 var fogLayers=[];
 (function(){
-for(var i=0;i<16;i++){
+var fogN=innerWidth<760?9:16;
+for(var i=0;i<fogN;i++){
 var dir=Math.random()<0.5?-1:1;
 fogLayers.push({
 spr:i%fogSprites.length,
@@ -4018,8 +4074,8 @@ $('btnMenu').addEventListener('click',function(){SND.click();toMenu();});
 $('btnHelp').addEventListener('click',function(){SND.ensure();SND.click();toggleHelp();});
 $('btnHelpClose').addEventListener('click',function(){SND.click();toggleHelp();});
 $('btnSound').addEventListener('click',toggleSound);
-$('btnZi').addEventListener('click',function(){G.cam.tzoom=clamp(G.cam.tzoom*1.2,.5,2);});
-$('btnZo').addEventListener('click',function(){G.cam.tzoom=clamp(G.cam.tzoom/1.2,.5,2);});
+$('btnZi').addEventListener('click',function(){G.cam.tzoom=clamp(G.cam.tzoom*1.2,.35,2.2);});
+$('btnZo').addEventListener('click',function(){G.cam.tzoom=clamp(G.cam.tzoom/1.2,.35,2.2);});
 $('btnFlag').addEventListener('click',function(){toggleFlagMode();});
 $('btnKnife').addEventListener('click',function(){toggleKnife();});
 $('btnBestiary').addEventListener('click',toggleBestiary);
@@ -4067,13 +4123,26 @@ $('btnSubmitScore').addEventListener('click', function(){
 // ---------- эмберы на титульнике ----------
 (function(){
 var box=$('embers');
-for(var i=0;i<26;i++){
+var embN=innerWidth<760?14:26;
+for(var i=0;i<embN;i++){
 var s=document.createElement('span');
 var sz=rand(2,5);
 s.style.cssText='left:'+rand(0,100)+'%;width:'+sz+'px;height:'+sz+'px;--sway:'+rand(-90,90)+'px;animation-duration:'+rand(6,14)+'s;animation-delay:'+rand(0,12)+'s;';
 box.appendChild(s);
 }
 })();
+// ---------- мобильная поддержка ----------
+function refitCamera(){
+  if(!G.N)return;
+  var mx=W<760?26:90,my=H<600?120:150;
+  var fit=Math.min((W-mx)/(G.N*TW+TW),(H-my)/(G.N*TH+WALL*2));
+  G.cam.tzoom=clamp(fit,.35,1.5);
+}
+addEventListener('orientationchange',function(){
+  setTimeout(function(){resize();refitCamera();},180);
+});
+document.addEventListener('gesturestart',function(e){e.preventDefault();}); // пинч-зум в iOS
+document.addEventListener('dblclick',function(e){e.preventDefault();});     // зум двойным тапом
 // ---------- старт ----------
 if(document.fonts&&document.fonts.load){document.fonts.load('12px "Press Start 2P"');}
 $('btnSound').textContent=SND.on?'♪ вкл':'♪ выкл';
