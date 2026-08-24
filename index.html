@@ -912,8 +912,16 @@ obstacle:false
 function pickMType(counts){
 var poolMax=Math.min(RUN.floor,14);
 var t=irand(0,poolMax-1);
-if(t>=6&&t<=9&&(counts[t]||0)>=1)t=irand(0,5);
+
+// Бывшие боссы — не больше 1 на ярус
+if(t>=6&&t<=9&&(counts[t]||0)>=2)t=irand(0,5);
+
+// Подземный червь — не больше 2 на ярус
 if(t===10&&(counts[10]||0)>=2)t=irand(0,5);
+
+// Мимик-обманщик — не больше 3 на ярус
+if(t===5&&(counts[5]||0)>=3)t=irand(0,4);
+
 counts[t]=(counts[t]||0)+1;
 return t;
 }
