@@ -483,11 +483,11 @@ function mulberry(s){return function(){s|=0;s=(s+0x6D2B79F5)|0;var t=Math.imul(s
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=a[i];a[i]=a[j];a[j]=tmp;}return a;}
 function fmtT(s){s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 function calcScore(){
-  var floorScore = RUN.floor * 120;
+  var floorScore = Math.max(0, RUN.floor - 1) * 120;
 
   var killScore = RUN.kills * 12;
   var goldScore = Math.floor(RUN.goldEarned * 0.8);
-  var heartScore = Math.max(0, RUN.hearts) * 25;
+  var heartScore = 0;
 
   var winBonus = 0;
   if (G.state === 'won' && RUN.floor >= 15) {
