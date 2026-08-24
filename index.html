@@ -1331,6 +1331,7 @@ G.torches=[
   {x:-1.5, y:G.N-2.0, tilt:0.12}
 ];
 for(var ti=0;ti<G.torches.length;ti++){G.torches[ti].fl=Math.random()*9;}
+updateTorchPositions();
 var mx=W<760?26:90,my=H<600?120:150;
 var fit=Math.min((W-mx)/(G.N*TW+TW),(H-my)/(G.N*TH+WALL*2));
 G.cam.zoom=clamp(fit,.35,1.5);G.cam.tzoom=G.cam.zoom;
@@ -1364,6 +1365,12 @@ return {size:size,mines:mines};
 }
 function newFloor(){
 var p=floorParams();
+
+// Сбрасываем поворот камеры на новом ярусе
+G.rot = 0;
+ROTANIM.active = false;
+ROTANIM.t = 1;
+
 newGame({size:p.size,mines:p.mines},false);
 G.lightBonus=RUN.lanternBuys*.6;
 wormT=0;
@@ -2617,7 +2624,7 @@ ctx.strokeStyle='rgba(255,190,100,'+(0.05+.05*Math.sin(now*.002+c.seed))+')';
 dia(cx,cy,TW2-2,TH2-1);ctx.stroke();
 }
 }
-if(c.flagged&&!c.revealed)drawFlag(cx,cy,c);
+// if(c.flagged&&!c.revealed)drawFlag(cx,cy,c);
 }
 function drawDecor(c,cx,cy,b){
 if(b<.12)return;
@@ -4293,6 +4300,17 @@ if(c.obstacle && c.revealed){
       }
     });
   })(c);
+}
+if(c.flagged && !c.revealed){
+    (function(cc){
+        ents.push({
+            d: depthOf(cc) + 0.2,
+            f: function(){
+                var cp = cellPos(cc);
+                drawFlag(cp.x, cp.y, cc);
+            }
+        });
+    })(c);
 }
 }
 for(var ti = 0; ti < G.torches.length; ti++){
