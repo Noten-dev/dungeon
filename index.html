@@ -1714,7 +1714,10 @@ var path=[],k=idx(cur.x,cur.y);
 while(k!==k0&&k!==-1){path.unshift(G.grid[k]);k=prev.get(k);}
 return path;
 }
-var dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+var dirs = [
+  [1,0],[-1,0],[0,1],[0,-1],   // ортогональные
+  [1,1],[1,-1],[-1,1],[-1,-1]  // диагональные
+];
 for(var i=0;i<dirs.length;i++){
 var n=cellAt(cur.x+dirs[i][0],cur.y+dirs[i][1]);
 if(n&&n.revealed&&!n.obstacle&&!prev.has(idx(n.x,n.y))){
