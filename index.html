@@ -61,6 +61,23 @@ background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1
 #banner.show{opacity:1}
 #banner .b1{font-family:'Press Start 2P',monospace;font-size:clamp(18px,4vw,34px);color:#ffd9a0;text-shadow:0 0 24px rgba(255,150,50,.55),0 3px 0 #3a1f0c}
 #banner .b2{font-size:14px;color:var(--dim);margin-top:12px;font-style:italic}
+#banner.boss .b1{
+  font-size:clamp(22px,5vw,46px);
+  letter-spacing:.14em;
+  animation:bossIn .9s cubic-bezier(.2,1.4,.4,1) both;
+}
+#banner.boss .b2{ font-size:14px; letter-spacing:.22em; text-transform:uppercase; }
+#banner.boss.theme-bw .b1{  color:#f2f2f5; text-shadow:0 0 28px rgba(255,255,255,.9),0 0 70px rgba(200,200,220,.5),0 4px 0 #101014; }
+#banner.boss.theme-acid .b1{ color:#b8ff8f; text-shadow:0 0 28px rgba(140,255,110,.9),0 0 70px rgba(60,220,120,.5),0 4px 0 #06301a; }
+#banner.boss.theme-hell .b1{ color:#ff7a3f; text-shadow:0 0 28px rgba(255,80,20,.95),0 0 80px rgba(255,40,10,.6),0 4px 0 #3d0703; }
+#banner.boss.theme-bw .b2{ color:#b9b9c4; }
+#banner.boss.theme-acid .b2{ color:#8fd0a0; }
+#banner.boss.theme-hell .b2{ color:#ffb08a; }
+@keyframes bossIn{
+  0%{ transform:scale(2.4); opacity:0; filter:blur(10px); }
+  60%{ transform:scale(.96); opacity:1; filter:blur(0); }
+  100%{ transform:scale(1); opacity:1; }
+}
 /* ---------- screens ---------- */
 .screen{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;overflow:auto;transition:opacity .5s;
 background:radial-gradient(ellipse at 50% 20%, rgba(28,20,12,.55), rgba(4,5,10,.88) 70%)}
@@ -141,8 +158,12 @@ float:right;
 z-index:3;
 width:38px;height:38px;
 margin:-8px -10px 8px 12px;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:0;
 font-family:'Press Start 2P',monospace;
-font-size:15px;
+font-size:14px;
 line-height:1;
 color:var(--text);
 background:rgba(20,23,34,.95);
@@ -340,7 +361,7 @@ button,.card,.shopitem{touch-action:manipulation}
 <div class="controls-line"><span class="hint-desktop"><b>ЛКМ / тап</b> — шаг и разведка · <b>ПКМ / долгий тап</b> — знамя · <b>K</b> — метнуть нож · <b>WASD</b> — ходьба</span><span class="hint-touch"><b>Тап</b> — шаг и разведка · <b>Долгий тап</b> — знамя · Кнопки <b>⚑ ЗНАМЯ</b> и <b>† НОЖИ</b> внизу — режимы</span></div>
 <div class="btnrow" style="margin-top:20px">
     <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
-    <button class="btn" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
+    <!-- <button class="btn" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button> -->
 </div>
 </div>
 </div>
@@ -439,22 +460,18 @@ button,.card,.shopitem{touch-action:manipulation}
 <!-- Бестиарий -->
 <div id="bestiary" class="screen hidden">
 <div class="bestiary-panel">
-<button class="close-x" id="btnBestiaryX" title="Закрыть">✕</button>
+<button class="close-x" id="btnBestiaryX" title="Закрыть">X</button>
 <h2> БЕСТИАРИЙ ТУМАННЫХ ГЛУБИН</h2>
 <div class="bestiary-progress" id="bestiaryProgress">Открыто: 0 / 14</div>
 <div class="bestiary-grid" id="bestiaryGrid"></div>
-<div class="btnrow"><button class="btn primary" id="btnBestiaryClose">ЗАКРЫТЬ</button></div>
 </div>
 </div>
 <!-- Таблица счёта -->
 <div id="leaders" class="screen hidden">
   <div class="bestiary-panel" style="max-width:760px">
-    <button class="close-x" id="btnLeadersX" title="Закрыть">✕</button>
+    <button class="close-x" id="btnLeadersX" title="Закрыть">X</button>
     <h2>🏆 ТАБЛИЦА СЧЁТА</h2>
     <div id="leadersList"></div>
-    <div class="btnrow">
-      <button class="btn primary" id="btnLeadersClose">ЗАКРЫТЬ</button>
-    </div>
   </div>
 </div>
 <script>
@@ -540,13 +557,13 @@ abilityDesc: 'Погибая, скрывает обратно в туман 4 с
 weakness: 'Знамёна и сундуки не скрывает — можно использовать их как ориентир.',
 },
 8: {
-id: 'abyss_guardian',
-name: 'Хранитель бездны',
-icon: '🗿',
-desc: 'Каменный колосс, пробудившийся после тысячелетнего сна. Теперь бродит по ярусам как обычный страж.',
-ability: 'КАМЕННАЯ ШКУРА',
-abilityDesc: 'Ножи отскакивают от его каменной шкуры без эффекта.',
-weakness: 'Убить можно, только наступив на него (получив урон) или чужим взрывом — например, демоном.',
+    id: 'magnetic_golem',
+    name: 'Магнитный Голем',
+    icon: '🧲',
+    desc: 'Груда ржавого железа, ожившая от блуждающих токов бездны. Притягивает к себе любой металл.',
+    ability: 'МАГНИТНОЕ ПОЛЕ',
+    abilityDesc: 'Метнутый нож отклоняется и попадает в случайную клетку, смежную с големом.',
+    weakness: 'Убивается прямым наступанием. Пока жив, ножи лучше беречь.',
 },
 9: {
 id: 'shadow_king',
@@ -592,6 +609,46 @@ desc: 'Осколок вечной мерзлоты, застрявший меж
 ability: 'ЗАМОРОЗКА',
 abilityDesc: 'Знамёна в радиусе 2 от него вмерзают в лёд: их нельзя снять, пока дух жив.',
 weakness: 'Ставить новые знамёна рядом можно — нельзя только снимать.',
+},
+14: {
+    id: 'crystal_resonator',
+    name: 'Кристалл-резонатор',
+    icon: '🔮',
+    desc: 'Живой минерал, искажающий саму реальность вокруг себя. Цифры лгут там, где он дышит.',
+    ability: 'РЕЗОНАНС',
+    abilityDesc: 'Пока жив, все цифры на открытых клетках в радиусе 3 показывают на 1 БОЛЬШЕ реального значения.',
+    weakness: 'Убей его ножом издалека, чтобы восстановить правду.',
+    danger: 'Коварная'
+},
+15: {
+    id: 'prismatic_crystal',
+    name: 'Призматический Кристалл',
+    icon: '💎',
+    desc: 'Парящий осколок древнего геода. Свет в нём преломляется так, что искажает саму логику подземелья.',
+    ability: 'ПРЕЛОМЛЕНИЕ',
+    abilityDesc: 'Цифры в радиусе 2 показывают монстров только по 4 сторонам света (без диагоналей).',
+    weakness: 'Искажение исчезает сразу после смерти. Ищите по заниженным цифрам.',
+    danger: 'Коварная'
+},
+16: {
+    id: 'stone_gorgon',
+    name: 'Каменная Горгона',
+    icon: '🐍',
+    desc: 'Слепое чудовище с волосами из шипящих змей. Её взгляд тяжел, как сама гора.',
+    ability: 'ОКАМЕНЕНИЕ',
+    abilityDesc: 'При гибели превращает 2 случайные открытые безопасные клетки в непроходимые каменные колонны.',
+    weakness: 'Убивайте, когда разведан большой участок и есть обходные пути.',
+    danger: 'Высокая'
+},
+17: {
+    id: 'cave_weaver',
+    name: 'Пещерный Ткач',
+    icon: '🕷️',
+    desc: 'Гигантский паук, плетущий невидимые сети из самой тьмы глубин.',
+    ability: 'ПАУТИНА',
+    abilityDesc: 'Клетки в радиусе 2 покрыты паутиной — на них нельзя использовать Аккорд.',
+    weakness: 'Паутина не защищает от ножа и не скрывает цифры.',
+    danger: 'Средняя'
 }
 };
 // ---------- утилиты ----------
@@ -1316,22 +1373,13 @@ return r;
 }
 // Пересчёт цифр по ЖИВЫМ монстрам + споры Скверны
 function recalcAdjAlive(){
-var i,c;
-for(i=0;i<G.grid.length;i++){
-c=G.grid[i];
-c.adj=neighbors8(c).filter(function(n){return n.mine&&n.mstate===0;}).length;
-c.sporeHidden=false;
-}
-// Скверна прячет цифры на соседних клетках, пока жива
-for(i=0;i<G.grid.length;i++){
-c=G.grid[i];
-if(c.mine&&c.mtype===12&&c.mstate===0){
-var ns=neighbors8(c);
-for(var j=0;j<ns.length;j++){
-if(!ns[j].mine)ns[j].sporeHidden=true;
-}
-}
-}
+    var i, c;
+    for(i = 0; i < G.grid.length; i++){
+        c = G.grid[i];
+        c.adj = neighbors8(c).filter(function(n){ return n.mine && n.mstate === 0; }).length;
+    }
+    // После пересчёта применяем все искажения
+    applyAllNumberEffects();
 }
 function pickDecor(r){
 var v=r();
@@ -1366,29 +1414,40 @@ obstacle:false
 // Каждый ярус добавляет в пул один новый вид тварей (шансы равны).
 // Редкие виды (экс-боссы 6–9) — не больше одного на ярус, червей — не больше двух.
 function pickMType(counts){
-var poolMax=Math.min(RUN.floor,14);
-var t=irand(0,poolMax-1);
+    // Базовый пул: ярус 1–14 → типы 0–13
+    if(G.bossType >= 0){
+      counts[G.bossType] = (counts[G.bossType]||0) + 1;
+      return G.bossType;
+    }
+    var poolMax = Math.min(RUN.floor, 14);
+    // Новые монстры добавляются с определённых ярусов
+    if(RUN.floor >= 8)  poolMax = Math.max(poolMax, 15); // Кристалл-резонатор
+    if(RUN.floor >= 10) poolMax = Math.max(poolMax, 16); // Призматический Кристалл
+    if(RUN.floor >= 12) poolMax = Math.max(poolMax, 17); // Каменная Горгона
+    if(RUN.floor >= 13) poolMax = Math.max(poolMax, 18); // Пещерный Ткач
 
-// Бывшие боссы — не больше 1 на ярус
-if(t>=6&&t<=9&&(counts[t]||0)>=5)t=irand(0,6);
+    var t = irand(0, poolMax - 1);
 
-// Подземный червь — не больше 2 на ярус
-if(t===10&&(counts[10]||0)>=5)t=irand(0,9);
+    // Лимиты
+    if(t >= 6 && t <= 9 && (counts[t]||0) >= 5) t = irand(0, 6);
+    if(t === 10 && (counts[10]||0) >= 5) t = irand(0, 9);
+    if(t === 13 && (counts[13]||0) >= 3) t = irand(0, 12);
+    if(t === 5  && (counts[5]||0)  >= 3) t = irand(0, 4);
+    // Новые лимиты
+    if(t === 14 && (counts[14]||0) >= 2) t = irand(0, 13);
+    if(t === 15 && (counts[15]||0) >= 2) t = irand(0, 13);
+    if(t === 16 && (counts[16]||0) >= 2) t = irand(0, 13);
+    if(t === 17 && (counts[17]||0) >= 3) t = irand(0, 13);
 
-// Морозный дкх — не больше 3 на ярус
-if(t===14&&(counts[14]||0)>=3)t=irand(0,13);
-
-// Мимик-обманщик — не больше 3 на ярус
-if(t===5&&(counts[5]||0)>=3)t=irand(0,4);
-
-counts[t]=(counts[t]||0)+1;
-return t;
+    counts[t] = (counts[t]||0) + 1;
+    return t;
 }
 function newGame(d,demo){
 ROTANIM.active = false;
 ROTANIM.t = 1;
 
 G.diff=d;G.N=d.size;G.mines=d.mines;G.grid=[];G.order=[];
+G.bossType=-1;G.floorTheme=null;
 var rnd=mulberry(demo?13377:((Math.random()*1e9)|0));
 for(var y=0;y<G.N;y++){for(var x=0;x<G.N;x++){G.grid.push(makeCell(x,y,rnd));}}
 buildOrder();
@@ -1436,6 +1495,13 @@ var dens=Math.min(d.density*(1+f*.02),.24);
 var mines=Math.round(size*size*dens);
 return {size:size,mines:mines};
 }
+// ---------- БОСС-ЯРУСЫ ----------
+var BOSS_FLOORS = {
+  5:  { types:[4, 14],  theme:'bw',   title:'ПРОКЛЯТЫЙ СКЛЕП',    sub:'Обитель призраков и лживых кристаллов' },
+  10: { types:[10, 5],  theme:'acid', title:'ИСКРИВЛЁННАЯ БЕЗДНА', sub:'Черви точат камень, мимики — твой разум' },
+  15: { types:[9, 11],  theme:'hell', title:'ПРЕДДВЕРИЕ АДА',      sub:'Тени короны и хохот бесов' }
+};
+function isBossFloor(f){ return !!BOSS_FLOORS[f]; }
 function newFloor(){
 var p=floorParams();
 
@@ -1445,6 +1511,11 @@ ROTANIM.active = false;
 ROTANIM.t = 1;
 
 newGame({size:p.size,mines:p.mines},false);
+if(isBossFloor(RUN.floor)){
+  var bd = BOSS_FLOORS[RUN.floor];
+  G.bossType = choice(bd.types);   // случайно один из двух боссов
+  G.floorTheme = bd.theme;
+}
 G.lightBonus=RUN.lanternBuys*.6;
 wormT=0;
 var cs=Math.floor(G.N/2);
@@ -1455,7 +1526,7 @@ document.getElementById('btnFlag').classList.remove('active');
 document.getElementById('btnKnife').classList.remove('active');
 hudSync(true);
 // Подсказка о новой твари на ярусе её дебюта
-if(RUN.floor>=2&&RUN.floor<=14){
+if(!isBossFloor(RUN.floor)&&RUN.floor>=2&&RUN.floor<=17){
 (function(f){
 setTimeout(function(){
 var m=MONSTERS[f-1];
@@ -1463,9 +1534,9 @@ if(m&&G.state==='play')toast('НОВЫЙ МОНСТР: '+m.icon+' '+m.name+' —
 },2500);
 })(RUN.floor);
 }
-if(RUN.floor===15){
+if(RUN.floor===17){
 setTimeout(function(){
-if(G.state==='play')toast('ЯРУС 15: все четырнадцать монстров пробудились');
+if(G.state==='play')toast('ЯРУС 15: все семнадцать монстров пробудились');
 },2500);
 }
 }
@@ -1504,7 +1575,7 @@ document.getElementById('help').classList.add('hidden');
 document.getElementById('bestiary').classList.add('hidden');
 document.getElementById('leaders').classList.add('hidden');
 document.getElementById('hud').classList.remove('hidden');
-banner('ЯРУС 1',floorTag(1));
+announceFloor();
 }
 // ---------- генерация мин и предметов ----------
 function placeMines(fc){
@@ -1612,25 +1683,30 @@ b = Math.max(b, lerp(.6, .45, t));
 return b;
 }
 function stoneCol(b, mul, jit) {
-var t = levelTone();
-var k = clamp(b * mul, 0, 1.15);
-var m = Math.min(1, k);
-var r0 = lerp(16, 24, t);
-var g0 = lerp(19, 7, t);
-var b0 = lerp(24, 38, t);
-var r1 = lerp(190, 148, t);
-var g1 = lerp(164, 78, t);
-var b1 = lerp(120, 205, t);
-var r = Math.floor(lerp(r0, r1, m) * jit);
-var g = Math.floor(lerp(g0, g1, m) * jit);
-var bl = Math.floor(lerp(b0, b1, m) * jit);
-var addB = Math.floor(18 * t * (1 - m));
-var addR = Math.floor(8 * t * (1 - m));
-var subG = Math.floor(10 * t * (1 - m));
-bl += addB;
-r += addR;
-g -= subG;
-return 'rgb(' + clamp(r, 0, 255) + ',' + clamp(g, 0, 255) + ',' + clamp(bl, 0, 255) + ')';
+  var k = clamp(b * mul, 0, 1.15);
+  var m = Math.min(1, k);
+  var r0,g0,b0,r1,g1,b1;
+  if (G.floorTheme === 'bw') {          // чёрно-белый склеп
+    r0=13; g0=13; b0=15;  r1=185; g1=185; b1=192;
+  } else if (G.floorTheme === 'acid') { // кислотно-зелёная бездна
+    r0=6;  g0=18; b0=12;  r1=85;  g1=215; b1=115;
+  } else if (G.floorTheme === 'hell') { // адский багровый
+    r0=24; g0=5;  b0=4;   r1=255; g1=85;  b1=25;
+  } else {
+    var t = levelTone();
+    r0 = lerp(16, 24, t);  g0 = lerp(19, 7, t);   b0 = lerp(24, 38, t);
+    r1 = lerp(190, 148, t); g1 = lerp(164, 78, t); b1 = lerp(120, 205, t);
+  }
+  var r = Math.floor(lerp(r0, r1, m) * jit);
+  var g = Math.floor(lerp(g0, g1, m) * jit);
+  var bl = Math.floor(lerp(b0, b1, m) * jit);
+  if (!G.floorTheme) {
+    var t2 = levelTone();
+    bl += Math.floor(18 * t2 * (1 - m));
+    r += Math.floor(8 * t2 * (1 - m));
+    g -= Math.floor(10 * t2 * (1 - m));
+  }
+  return 'rgb(' + clamp(r,0,255) + ',' + clamp(g,0,255) + ',' + clamp(bl,0,255) + ')';
 }
 // ---------- свет и тени факелов на стенах ----------
 function torchFlick(tp){
@@ -1728,7 +1804,7 @@ SND.reveal(w||0);
 poof(isoX(c.x,c.y),isoY(c.x,c.y)+TH2);
 pickup(c);
 if(c.adj===0 && !c.obstacle)floodFrom(c);
-applyMimicDistortion();
+applyAllNumberEffects();
 checkWin();
 }
 function pickup(c){
@@ -1852,7 +1928,6 @@ var px = isoX(c.x,c.y), py = isoY(c.x,c.y)+TH2;
 SND.resurrect();
 addText(px,py-24,'ВОСКРЕШЕНИЕ!','#a064d2');
 recalcAdjAlive();
-applyMimicDistortion();
 G.shake = 8;
 }
 // Защита: не трогаем клетку, где стоит герой (и куда он сейчас шагает)
@@ -1919,27 +1994,126 @@ addText(px,py-24,'РЕАЛЬНОСТЬ ДРОЖИТ!','#5a3a6e');
 G.shake = 14;
 flashRed();
 }
+// Каменная Горгона: при гибели превращает 2 открытые клетки в колонны
+function gorgonPetrify(c){
+    if(c.mtype !== 16) return;
+    var safeRevealed = G.grid.filter(function(g){
+        return !g.mine && g.revealed && !g.item && !g.stair && !g.obstacle && !heroProtected(g);
+    });
+    shuffle(safeRevealed);
+    var toStone = Math.min(2, safeRevealed.length);
+    for(var i = 0; i < toStone; i++){
+        safeRevealed[i].obstacle = true;
+        safeRevealed[i].revealed = true;
+        poof(isoX(safeRevealed[i].x, safeRevealed[i].y), isoY(safeRevealed[i].x, safeRevealed[i].y) + TH2);
+        sparkle(isoX(safeRevealed[i].x, safeRevealed[i].y), isoY(safeRevealed[i].x, safeRevealed[i].y) + TH2, '#aab3c4');
+    }
+    var px = isoX(c.x, c.y), py = isoY(c.x, c.y) + TH2;
+    SND.stoneCreak();
+    addText(px, py - 24, 'ОКАМЕНЕНИЕ!', '#aab3c4');
+    G.shake = 10;
+    // Пересчитываем доступность (не обязательно, но желательно)
+    ensureConnectivity();
+}
 // Мимик-обманщик: искажение цифр
-function applyMimicDistortion(){
-for(var i=0;i<G.grid.length;i++){
-G.grid[i].decoyNumber = null;
+function applyAllNumberEffects(){
+    var i, c;
+    // 1. Сброс
+    for(i = 0; i < G.grid.length; i++){
+        G.grid[i].decoyNumber = null;
+        G.grid[i].sporeHidden = false;
+        G.grid[i].webbed = false;
+    }
+
+    // 2. Скверна (тип 12) прячет цифры на соседних клетках
+    for(i = 0; i < G.grid.length; i++){
+        c = G.grid[i];
+        if(c.mine && c.mtype === 12 && c.mstate === 0){
+            var ns = neighbors8(c);
+            for(var j = 0; j < ns.length; j++){
+                if(!ns[j].mine) ns[j].sporeHidden = true;
+            }
+        }
+    }
+
+    // 3. Пещерный Ткач (тип 17) — паутина в радиусе 2
+    for(i = 0; i < G.grid.length; i++){
+        c = G.grid[i];
+        if(c.mine && c.mtype === 17 && c.mstate === 0){
+            for(var dy = -2; dy <= 2; dy++){
+                for(var dx = -2; dx <= 2; dx++){
+                    var n = cellAt(c.x + dx, c.y + dy);
+                    if(n) n.webbed = true;
+                }
+            }
+        }
+    }
+
+    // 4. Собираем активные кристаллы
+    var resonators = [];   // тип 14
+    var prisms = [];       // тип 15
+    var mimics = [];       // тип 5
+    for(i = 0; i < G.grid.length; i++){
+        c = G.grid[i];
+        if(!c.mine || c.mstate !== 0) continue;
+        if(c.mtype === 14) resonators.push(c);
+        if(c.mtype === 15) prisms.push(c);
+        if(c.mtype === 5)  mimics.push(c);
+    }
+    if(!resonators.length && !prisms.length && !mimics.length) return;
+
+    // 5. Для каждой открытой клетки считаем отображаемую цифру
+    for(i = 0; i < G.grid.length; i++){
+        c = G.grid[i];
+        if(c.mine || !c.revealed || c.adj <= 0 || c.item || c.stair) continue;
+
+        var displayVal = c.adj;
+        var distorted = false;
+
+        // 5a. Призматический Кристалл (радиус 2): только 4 стороны света
+        for(var p = 0; p < prisms.length; p++){
+            if(Math.abs(c.x - prisms[p].x) <= 2 && Math.abs(c.y - prisms[p].y) <= 2){
+                displayVal = countCardinal(c);
+                distorted = true;
+                break;
+            }
+        }
+
+        // 5b. Кристалл-резонатор (радиус 3): +1
+        for(var r = 0; r < resonators.length; r++){
+            if(Math.abs(c.x - resonators[r].x) <= 3 && Math.abs(c.y - resonators[r].y) <= 3){
+                displayVal = Math.min(displayVal + 1, 8);
+                distorted = true;
+                break;
+            }
+        }
+
+        // 5c. Мимик (радиус 2): полная подмена случайным числом
+        for(var m = 0; m < mimics.length; m++){
+            if(Math.abs(c.x - mimics[m].x) <= 2 && Math.abs(c.y - mimics[m].y) <= 2){
+                var newNum;
+                do { newNum = irand(0, Math.min(8, G.mines)); } while(newNum === c.adj);
+                displayVal = newNum;
+                distorted = true;
+                break;
+            }
+        }
+
+        if(distorted && displayVal !== c.adj){
+            c.decoyNumber = displayVal;
+        }
+    }
 }
-var mimics = G.grid.filter(function(g){return g.mine && g.mtype === 5 && g.mstate === 0;});
-if(mimics.length === 0) return;
-for(var m=0;m<mimics.length;m++){
-var mimic = mimics[m];
-for(var dy=-2;dy<=2;dy++){
-for(var dx=-2;dx<=2;dx++){
-var n = cellAt(mimic.x+dx, mimic.y+dy);
-if(n && !n.mine && n.revealed && n.adj > 0 && !n.item && !n.stair){
-var newNum;
-do{ newNum = irand(0, Math.min(8, G.mines)); }
-while(newNum === n.adj);
-n.decoyNumber = newNum;
-}
-}
-}
-}
+
+// Подсчёт монстров только по 4 сторонам света (для Призматического Кристалла)
+function countCardinal(c){
+    var dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+    var cnt = 0;
+    for(var i = 0; i < dirs.length; i++){
+        var n = cellAt(c.x + dirs[i][0], c.y + dirs[i][1]);
+        if(n && n.mine && n.mstate === 0) cnt++;
+    }
+    return cnt;
 }
 // Подземный червь: переползает в соседнюю закрытую клетку
 function moveWorms(){
@@ -1962,7 +2136,6 @@ poof(isoX(t.x,t.y),isoY(t.x,t.y)+TH2);
 }
 if(moved){
 recalcAdjAlive();
-applyMimicDistortion();
 SND.wormMove();
 }
 }
@@ -2139,12 +2312,12 @@ if(c.mtype===2)demonExplode(c);
 if(c.mtype===6)necromancerResurrect(c);
 if(c.mtype===7)fogLordObscure(c);
 if(c.mtype===9)shadowKingSwap(c);
-applyMimicDistortion();
+if(c.mtype === 16) gorgonPetrify(c);
+recalcAdjAlive();
 var h=G.hero;
 if(h.cx===c.x&&h.cy===c.y&&h.last){h.cx=h.last.x;h.cy=h.last.y;}
 h.seg=null;h.queue.length=0;h.pending=null;
 recalcAdjAlive();
-applyMimicDistortion();
 hudSync(true);
 if(RUN.hearts<=0)defeat();
 else checkWin();
@@ -2165,14 +2338,43 @@ document.getElementById('btnKnife').classList.remove('active');var px=isoX(c.x,c
 if(c.flagged){c.flagged=false;G.flags--;}
 if(c.mine){
 BESTIARY.unlock(c.mtype);
-if(c.mtype===8){
-// Каменная шкура: нож отскакивает
-SND.stoneCreak();
-addText(px,py-16,'КАМЕНЬ!','#aab3c4');
-sparkle(px,py,'#8a8a8a');
-G.shake=4;
-c.shielded=true;
-setTimeout(function(){c.shielded=false;},1500);
+if(c.mtype === 8){
+    // МАГНИТНОЕ ПОЛЕ: нож отклоняется в случайную смежную клетку
+    SND.knifeBlocked();
+    addText(px, py - 16, 'МАГНИТ!', '#7ec8ff');
+    sparkle(px, py, '#7ec8ff');
+    G.shake = 5;
+
+    var adjCells = neighbors8(c).filter(function(n){
+        return !n.revealed && !n.flagged;
+    });
+    if(adjCells.length > 0){
+        var target = choice(adjCells);
+        // Нож поражает случайную смежную клетку
+        if(target.mine){
+            target.revealed = true; target.revealT = now;
+            target.mstate = 2; target.mT = now;
+            SND.knifeHit();
+            monsterLoot(target);
+            sparkle(isoX(target.x, target.y), isoY(target.x, target.y) + TH2, '#ffd76e');
+            addText(isoX(target.x, target.y), isoY(target.x, target.y) + TH2 - 16, 'ПОПАЛ!', '#9fe08a');
+            // Вызываем предсмертные способности убитого
+            if(target.mtype === 0)  trySlimeSplit(target);
+            if(target.mtype === 2)  demonExplode(target);
+            if(target.mtype === 6)  necromancerResurrect(target);
+            if(target.mtype === 7)  fogLordObscure(target);
+            if(target.mtype === 9)  shadowKingSwap(target);
+            if(target.mtype === 16) gorgonPetrify(target);
+            recalcAdjAlive();
+        } else {
+            // Промах по пустой клетке
+            SND.knifeMiss();
+            poof(isoX(target.x, target.y), isoY(target.x, target.y) + TH2);
+            addText(isoX(target.x, target.y), isoY(target.x, target.y) + TH2 - 10, 'мимо…', '#aab3c4');
+        }
+    }
+    c.shielded = true;
+    setTimeout(function(){ c.shielded = false; }, 1500);
 }else if(c.mtype===1&&!c.shielded&&Math.random()<0.3){
 c.shielded=true;
 SND.knifeBlocked();
@@ -2182,6 +2384,7 @@ G.shake=5;
 }else{
 c.revealed=true;c.revealT=now;c.mstate=2;c.mT=now;
 SND.knifeHit();monsterLoot(c);
+if(c.mtype === 16) gorgonPetrify(c);
 recalcAdjAlive();
 sparkle(px,py,'#ffd76e');addText(px,py-16,'ПОВЕРЖЕНА','#9fe08a');
 if(c.mtype===0)trySlimeSplit(c);
@@ -2189,7 +2392,6 @@ if(c.mtype===2)demonExplode(c);
 if(c.mtype===6)necromancerResurrect(c);
 if(c.mtype===7)fogLordObscure(c);
 if(c.mtype===9)shadowKingSwap(c);
-applyMimicDistortion();
 }
 }else if(c.obstacle){
 SND.knifeMiss();poof(px,py);
@@ -2206,24 +2408,28 @@ hudSync(true);
 checkWin();
 }
 function tryChord(c){
-if(c.adj <= 0 || !G.firstDone) return false;
-var ns = neighbors8(c);
-var fl = ns.filter(function(n){ return n.flagged; }).length;
-if(fl === c.adj){
-var hid = ns.filter(function(n){ return !n.revealed && !n.flagged; });
-if(!hid.length){
-c.pulseT = now;
-return false;
-}
-for(var i = 0; i < hid.length; i++){
-revealQueue.push({ c: hid[i], t: now + i * 50, w: i });
-}
-sortQ();
-return true;
-}
-c.pulseT = now;
-SND.deny();
-return false;
+    if(c.adj <= 0 || !G.firstDone) return false;
+    // Пещерный Ткач: паутина блокирует аккорд
+    if(c.webbed){
+        c.pulseT = now;
+        toast('Паутина мешает аккорду!');
+        SND.deny();
+        return false;
+    }
+    var ns = neighbors8(c);
+    var fl = ns.filter(function(n){ return n.flagged; }).length;
+    if(fl === c.adj){
+        var hid = ns.filter(function(n){ return !n.revealed && !n.flagged; });
+        if(!hid.length){ c.pulseT = now; return false; }
+        for(var i = 0; i < hid.length; i++){
+            revealQueue.push({ c: hid[i], t: now + i * 50, w: i });
+        }
+        sortQ();
+        return true;
+    }
+    c.pulseT = now;
+    SND.deny();
+    return false;
 }
 // Знамя: призрак, бесёнок, морозный дух
 function toggleFlag(c){
@@ -2925,6 +3131,29 @@ ctx.strokeStyle='rgba(0,0,0,'+Math.max(0,.35-b*.15)+')';ctx.lineWidth=1;ctx.stro
 if(b>.15){ctx.strokeStyle='rgba(255,205,140,'+(0.07*Math.min(b,1))+')';dia(cx,cy,TW2-3,TH2-1.5);ctx.stroke();}
 if(c.revealed){
 drawDecor(c,cx,cy,b);
+// Паутина Ткача
+if(c.webbed && c.revealed && b > 0.1){
+    ctx.save();
+    ctx.globalAlpha = 0.25 * b;
+    ctx.strokeStyle = '#c8c8dc';
+    ctx.lineWidth = 0.6;
+    var wc = cellPos(c);
+    for(var wi = 0; wi < 6; wi++){
+        var wa = wi * Math.PI / 3 + c.seed;
+        ctx.beginPath();
+        ctx.moveTo(wc.x, wc.y);
+        ctx.lineTo(wc.x + Math.cos(wa)*TW2*0.8, wc.y + Math.sin(wa)*TH2*0.8);
+        ctx.stroke();
+    }
+    // Кольца
+    ctx.beginPath();
+    ctx.ellipse(wc.x, wc.y, TW2*0.3, TH2*0.3, 0, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(wc.x, wc.y, TW2*0.6, TH2*0.6, 0, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+}
 if(c.stair)drawStairs(cx,cy);
 if(c.item&&!c.taken)drawItem(c,cx,cy);
 if(c.adj>0 && !c.obstacle)drawNumber(c,cx,cy,b);
@@ -3191,7 +3420,8 @@ ctx.textAlign='center';ctx.textBaseline='middle';
 ctx.shadowColor=NUMCOL[c.adj];ctx.shadowBlur=10*Math.min(b,1);
 ctx.globalAlpha=clamp(b*1.15,0,1);
 var colKey = (c.decoyNumber !== null) ? displayNum : c.adj;
-ctx.fillStyle = NUMCOL[colKey] || '#aab3c4';
+var BWNUM=['#f5f5f5','#e0e0e0','#cccccc','#b8b8b8','#a4a4a4','#909090','#7c7c7c','#686868','#555'];
+ctx.fillStyle = (G.floorTheme==='bw') ? (BWNUM[colKey]||'#fff') : (NUMCOL[colKey] || '#aab3c4');
 ctx.fillText(displayNum,cx,cy-(c.stair?11:2));
 ctx.restore();
 }
@@ -3720,6 +3950,132 @@ ctx.moveTo(fx,fy-2.4);ctx.lineTo(fx,fy+2.4);
 ctx.stroke();
 }
 ctx.restore();
+}else if(c.mtype===14){
+    // КРИСТАЛЛ-РЕЗОНАТОР
+    var resPulse = 0.5 + 0.3*Math.sin(now*.005+c.seed);
+    ctx.save();
+    ctx.translate(0, Math.sin(now*.003+c.seed)*2);
+    // Свечение
+    ctx.globalCompositeOperation='lighter';
+    var rg=ctx.createRadialGradient(0,-12,3,0,-12,22);
+    rg.addColorStop(0,'rgba(180,100,255,'+(resPulse*.4)+')');
+    rg.addColorStop(1,'rgba(140,60,220,0)');
+    ctx.fillStyle=rg;ctx.beginPath();ctx.arc(0,-12,22,0,Math.PI*2);ctx.fill();
+    ctx.globalCompositeOperation='source-over';
+    // Кристалл
+    ctx.fillStyle='#9b59b6';
+    ctx.beginPath();
+    ctx.moveTo(0,-28);ctx.lineTo(8,-14);ctx.lineTo(5,-2);
+    ctx.lineTo(-5,-2);ctx.lineTo(-8,-14);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#c39bd3';
+    ctx.beginPath();ctx.moveTo(0,-28);ctx.lineTo(3,-14);ctx.lineTo(0,-2);ctx.closePath();ctx.fill();
+    // Глаз
+    ctx.fillStyle='rgba(255,200,255,'+(0.6+0.4*Math.sin(now*.007))+')';
+    ctx.beginPath();ctx.arc(0,-14,3,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+
+}else if(c.mtype===15){
+    // ПРИЗМАТИЧЕСКИЙ КРИСТАЛЛ
+    var priPulse = 0.6 + 0.3*Math.sin(now*.004+c.seed);
+    ctx.save();
+    ctx.translate(0, Math.sin(now*.004+c.seed)*3 - 4);
+    // Радужное свечение
+    ctx.globalCompositeOperation='lighter';
+    var colors = ['rgba(255,80,80,','rgba(255,200,50,','rgba(80,255,120,','rgba(80,150,255,','rgba(200,80,255,'];
+    for(var ci=0;ci<5;ci++){
+        var ca = now*.002 + ci*1.26;
+        var cx2 = Math.cos(ca)*12, cy2 = Math.sin(ca)*6 - 12;
+        ctx.fillStyle=colors[ci]+(priPulse*.3)+')';
+        ctx.beginPath();ctx.arc(cx2,cy2,4,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalCompositeOperation='source-over';
+    // Алмаз
+    ctx.fillStyle='#aed6f1';
+    ctx.beginPath();
+    ctx.moveTo(0,-26);ctx.lineTo(9,-14);ctx.lineTo(6,-2);
+    ctx.lineTo(-6,-2);ctx.lineTo(-9,-14);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#ebf5fb';
+    ctx.beginPath();ctx.moveTo(0,-26);ctx.lineTo(4,-14);ctx.lineTo(0,-4);ctx.lineTo(-4,-14);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=0.8;
+    ctx.beginPath();ctx.moveTo(-9,-14);ctx.lineTo(9,-14);ctx.stroke();
+    ctx.restore();
+
+}else if(c.mtype===16){
+    // КАМЕННАЯ ГОРГОНА
+    var gorBob = Math.sin(now*.003+c.seed)*1.5;
+    ctx.save();ctx.translate(0,gorBob);
+    // Тело
+    ctx.fillStyle='#5d6d7e';
+    ctx.beginPath();
+    ctx.moveTo(-12,2);ctx.quadraticCurveTo(-14,-14,-8,-22);
+    ctx.quadraticCurveTo(0,-28,8,-22);ctx.quadraticCurveTo(14,-14,12,2);
+    ctx.closePath();ctx.fill();
+    // Каменная текстура
+    ctx.strokeStyle='rgba(40,50,60,.6)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(-6,-18);ctx.lineTo(-2,-8);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(4,-16);ctx.lineTo(6,-6);ctx.stroke();
+    // Змеи-волосы
+    ctx.strokeStyle='#27ae60';ctx.lineWidth=2;ctx.lineCap='round';
+    for(var si=0;si<5;si++){
+        var sa = -0.8 + si*0.4;
+        var sw = Math.sin(now*.008+si*2+c.seed)*3;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(sa)*6, -22+Math.sin(sa)*3);
+        ctx.quadraticCurveTo(
+            Math.cos(sa)*12+sw, -28-Math.abs(Math.sin(sa))*6,
+            Math.cos(sa)*16+sw*1.5, -24-Math.abs(Math.sin(sa))*10
+        );
+        ctx.stroke();
+        // Голова змеи
+        ctx.fillStyle='#2ecc71';
+        ctx.beginPath();ctx.arc(Math.cos(sa)*16+sw*1.5, -24-Math.abs(Math.sin(sa))*10, 1.5,0,Math.PI*2);ctx.fill();
+    }
+    // Глаза (закрыты — слепа)
+    ctx.strokeStyle='#2c3e50';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(-5,-16);ctx.lineTo(-1,-16);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(1,-16);ctx.lineTo(5,-16);ctx.stroke();
+    ctx.restore();
+
+}else if(c.mtype===17){
+    // ПЕЩЕРНЫЙ ТКАЧ
+    var webBob = Math.sin(now*.005+c.seed)*2;
+    ctx.save();ctx.translate(0, webBob);
+    // Лапы
+    ctx.strokeStyle='#4a3728';ctx.lineWidth=2;ctx.lineCap='round';
+    for(var li=0;li<4;li++){
+        var la = -0.6+li*0.4;
+        var lw = Math.sin(now*.006+li*1.5+c.seed)*2;
+        ctx.beginPath();
+        ctx.moveTo(-4,-8);
+        ctx.quadraticCurveTo(-14-li*2, -12+la*8+lw, -18-li*2, -2+la*10);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(4,-8);
+        ctx.quadraticCurveTo(14+li*2, -12+la*8-lw, 18+li*2, -2+la*10);
+        ctx.stroke();
+    }
+    // Тело
+    ctx.fillStyle='#5d4037';
+    ctx.beginPath();ctx.ellipse(0,-6,8,10,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#6d4c41';
+    ctx.beginPath();ctx.ellipse(0,-14,6,6,0,0,Math.PI*2);ctx.fill();
+    // Глаза (много)
+    ctx.fillStyle='#ff5722';
+    var eyes=[[-3,-15],[-1,-16],[1,-16],[3,-15],[-2,-13],[2,-13]];
+    for(var ei=0;ei<eyes.length;ei++){
+        ctx.beginPath();ctx.arc(eyes[ei][0],eyes[ei][1],1,0,Math.PI*2);ctx.fill();
+    }
+    // Паутина вокруг
+    ctx.strokeStyle='rgba(200,200,220,'+(0.2+0.15*Math.sin(now*.004+c.seed))+')';
+    ctx.lineWidth=0.6;
+    for(var wi=0;wi<6;wi++){
+        var wa=wi*Math.PI/3+now*.0003;
+        ctx.beginPath();
+        ctx.moveTo(0,-10);
+        ctx.lineTo(Math.cos(wa)*22,-10+Math.sin(wa)*12);
+        ctx.stroke();
+    }
+    ctx.restore();
 }
 if(c.mstate===1&&now-c.mT<280){
 ctx.globalCompositeOperation='lighter';
@@ -4194,7 +4550,40 @@ function drawSlain(c){
     ctx.lineTo(5, 0);
     ctx.stroke();
 
-  }else{
+  }else if(c.mtype===14){
+    // КРИСТАЛЛ-РЕЗОНАТОР — расколотый кристалл
+    ctx.fillStyle='#7d3c98';
+    ctx.beginPath();ctx.moveTo(-6,-2);ctx.lineTo(-2,-12);ctx.lineTo(1,-4);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(3,-1);ctx.lineTo(6,-9);ctx.lineTo(8,-2);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(200,150,255,'+(0.2+0.3*pulse)+')';
+    ctx.beginPath();ctx.arc(0,-4,8,0,Math.PI*2);ctx.fill();
+
+}else if(c.mtype===15){
+    // ПРИЗМАТИЧЕСКИЙ КРИСТАЛЛ — тусклые осколки
+    ctx.fillStyle='rgba(174,214,241,.5)';
+    ctx.beginPath();ctx.moveTo(-5,-1);ctx.lineTo(-2,-8);ctx.lineTo(1,-2);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(3,0);ctx.lineTo(5,-6);ctx.lineTo(7,-1);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,'+(0.1+0.15*pulse)+')';
+    ctx.beginPath();ctx.arc(0,-3,6,0,Math.PI*2);ctx.fill();
+
+}else if(c.mtype===16){
+    // ГОРГОНА — груда камня и мёртвые змеи
+    ctx.fillStyle='#5d6d7e';
+    ctx.fillRect(-8,-5,7,5);ctx.fillRect(1,-3,6,4);ctx.fillRect(-3,-8,5,3);
+    ctx.strokeStyle='#27ae60';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(-4,-8);ctx.quadraticCurveTo(-8,-12,-6,-14);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(3,-6);ctx.quadraticCurveTo(7,-10,5,-13);ctx.stroke();
+
+}else if(c.mtype===17){
+    // ТКАЧ — ссохшееся тело и порванные нити
+    ctx.fillStyle='#4a3728';
+    ctx.beginPath();ctx.ellipse(0,-3,7,4,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(200,200,220,.3)';ctx.lineWidth=0.5;
+    for(var wi=0;wi<4;wi++){
+        ctx.beginPath();ctx.moveTo(0,-3);
+        ctx.lineTo(Math.cos(wi*1.6)*14, -3+Math.sin(wi*1.6)*8);ctx.stroke();
+    }
+}else{
     // Запасной вариант, если тип неизвестен
     ctx.fillStyle = '#3a3e48';
     ctx.beginPath();
@@ -4492,8 +4881,12 @@ ctx.restore();
 // ---------- главный кадр ----------
 function draw(dt){
 ctx.setTransform(DPR,0,0,DPR,0,0);
+var bgTop='#0d101c', bgMid='#080a12', bgBot='#04050a';
+if(G.floorTheme==='bw'){   bgTop='#17171c'; bgMid='#0c0c0f'; bgBot='#050506'; }
+if(G.floorTheme==='acid'){ bgTop='#0a1a10'; bgMid='#061008'; bgBot='#020604'; }
+if(G.floorTheme==='hell'){ bgTop='#240a06'; bgMid='#140405'; bgBot='#080203'; }
 var bg=ctx.createLinearGradient(0,0,0,H);
-bg.addColorStop(0,'#0d101c');bg.addColorStop(.5,'#080a12');bg.addColorStop(1,'#04050a');
+bg.addColorStop(0,bgTop);bg.addColorStop(.5,bgMid);bg.addColorStop(1,bgBot);
 ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 ctx.save();
 ctx.globalAlpha=0.55;
@@ -4813,6 +5206,29 @@ el.classList.add('show');
 clearTimeout(bannerTimer);
 bannerTimer=setTimeout(function(){el.classList.remove('show');},2400);
 }
+function bossBanner(title, sub, theme){
+  var el=$('banner');
+  el.innerHTML='<div class="b1">'+title+'</div><div class="b2">'+sub+'</div>';
+  el.classList.remove('theme-bw','theme-acid','theme-hell');
+  el.classList.add('boss','theme-'+theme,'show');
+  clearTimeout(bannerTimer);
+  bannerTimer=setTimeout(function(){
+    el.classList.remove('show','boss','theme-bw','theme-acid','theme-hell');
+  },3600);
+}
+function announceFloor(){
+  var f=RUN.floor;
+  if(isBossFloor(f)){
+    var bd=BOSS_FLOORS[f];
+    var m=MONSTERS[G.bossType];
+    SND.descend();
+    bossBanner('☠ '+bd.title+' ☠',
+      bd.sub+' · ХОЗЯИН: '+m.icon+' '+m.name+' · «'+m.ability+'»',
+      bd.theme);
+  } else {
+    banner('ЯРУС '+f, floorTag(f));
+  }
+}
 // ---------- экраны ----------
 function buildCards(){
 var box=$('cards'),best=loadBest();
@@ -4991,7 +5407,7 @@ SND.descend();
 $('camp').classList.add('hidden');
 RUN.floor++;
 newFloor();
-banner('ЯРУС '+RUN.floor,floorTag(RUN.floor));
+announceFloor();
 });
 $('btnAgain').addEventListener('click',function(){SND.click();startRun(RUN.diff);});
 $('btnToMenu').addEventListener('click',function(){SND.click();toMenu();});
@@ -5006,12 +5422,10 @@ $('btnRotR').addEventListener('click',function(){rotateView(1);});
 $('btnFlag').addEventListener('click',function(){toggleFlagMode();});
 $('btnKnife').addEventListener('click',function(){toggleKnife();});
 $('btnBestiary').addEventListener('click',toggleBestiary);
-$('btnBestiaryClose').addEventListener('click',toggleBestiary);
 $('btnBestiaryX').addEventListener('click',toggleBestiary);
 $('btnLeaders').addEventListener('click', toggleLeaders);
 $('btnTitleLeaders').addEventListener('click', toggleLeaders);
 $('btnEndLeaders').addEventListener('click', toggleLeaders);
-$('btnLeadersClose').addEventListener('click', toggleLeaders);
 $('btnLeadersX').addEventListener('click', toggleLeaders);
 
 $('btnSubmitScore').addEventListener('click', function(){
@@ -5159,7 +5573,6 @@ function debugSpawnMonster(type, count){
   }
 
   recalcAdjAlive();
-  applyMimicDistortion();
   hudSync(true);
 
   console.log('[TEST] Заспавнен монстр:', MONSTERS[type].name, 'штук:', changed);
@@ -5245,7 +5658,6 @@ function startTestRun() {
       }
 
       recalcAdjAlive();
-      applyMimicDistortion();
     }
 
     debugSpawnMonster(RUN.testMonster, RUN.testMonsterCount);
