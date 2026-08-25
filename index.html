@@ -133,6 +133,29 @@ border-radius:6px;padding:13px 16px;cursor:pointer;transition:.15s}
 box-shadow:0 20px 60px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,220,160,.08);padding:30px 34px;max-width:860px;width:94%;
 max-height:90vh;overflow-y:auto}
 .bestiary-panel h2{font-family:'Press Start 2P',monospace;font-size:clamp(16px,3.4vw,26px);line-height:1.5;margin-bottom:22px;color:var(--amber);text-shadow:0 0 20px rgba(255,170,60,.4)}
+/* ---------- крестик закрытия окон ---------- */
+.close-x{
+position:sticky;
+top:6px;
+float:right;
+z-index:3;
+width:38px;height:38px;
+margin:-8px -10px 8px 12px;
+font-family:'Press Start 2P',monospace;
+font-size:15px;
+line-height:1;
+color:var(--text);
+background:rgba(20,23,34,.95);
+border:1px solid var(--line);
+border-radius:8px;
+cursor:pointer;
+transition:.15s;
+}
+@media(max-width:760px){
+.close-x{width:34px;height:34px;font-size:13px;margin:-4px -2px 8px 10px}
+}
+.close-x:hover{border-color:var(--amber);color:var(--amber);box-shadow:0 0 12px rgba(255,170,60,.3)}
+.close-x:active{transform:scale(.94)}
 .bestiary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:22px}
 .bestiary-card{background:rgba(20,23,34,.75);border:1px solid var(--line);border-radius:10px;padding:18px;
 text-align:center;transition:.2s;position:relative;min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -416,6 +439,7 @@ button,.card,.shopitem{touch-action:manipulation}
 <!-- Бестиарий -->
 <div id="bestiary" class="screen hidden">
 <div class="bestiary-panel">
+<button class="close-x" id="btnBestiaryX" title="Закрыть">✕</button>
 <h2> БЕСТИАРИЙ ТУМАННЫХ ГЛУБИН</h2>
 <div class="bestiary-progress" id="bestiaryProgress">Открыто: 0 / 14</div>
 <div class="bestiary-grid" id="bestiaryGrid"></div>
@@ -425,6 +449,7 @@ button,.card,.shopitem{touch-action:manipulation}
 <!-- Таблица счёта -->
 <div id="leaders" class="screen hidden">
   <div class="bestiary-panel" style="max-width:760px">
+    <button class="close-x" id="btnLeadersX" title="Закрыть">✕</button>
     <h2>🏆 ТАБЛИЦА СЧЁТА</h2>
     <div id="leadersList"></div>
     <div class="btnrow">
@@ -450,7 +475,6 @@ desc: 'Вязкая зелёная масса, что скапливается �
 ability: 'ДЕЛЕНИЕ',
 abilityDesc: 'При гибели с шансом 35% разделяется на 2 маленьких слизня в соседних клетках.',
 weakness: 'Легко убивается ножом, но будь осторожен — деление может создать больше проблем!',
-danger: 'Низкая'
 },
 1: {
 id: 'skeleton_mage',
@@ -460,7 +484,6 @@ desc: 'Останки древнего колдуна, всё ещё помня�
 ability: 'КОСТЯНОЙ ЩИТ',
 abilityDesc: 'С шансом 30% блокирует брошенный нож — магия защищает его от смерти.',
 weakness: 'Щит не защищает от прямого наступания, только от ножей.',
-danger: 'Средняя'
 },
 2: {
 id: 'demon',
@@ -470,7 +493,6 @@ desc: 'Адское отродье, призванное из нижних кр�
 ability: 'ПРЕДСМЕРТНЫЙ ВЗРЫВ',
 abilityDesc: 'Умирая, взрывается и открывает все соседние закрытые клетки.',
 weakness: 'Может помочь с разведкой, если убить его ножом в правильном месте.',
-danger: 'Высокая'
 },
 3: {
 id: 'vampire_bat',
@@ -480,7 +502,6 @@ desc: 'Крылатый кровосос из глубочайших пещер.
 ability: 'КРОВОСОСАНИЕ',
 abilityDesc: 'Наносит 2 урона вместо 1 при наступании, но роняет вдвое больше золота.',
 weakness: 'Риск ради награды. Нож убивает её как обычно.',
-danger: 'Высокая'
 },
 4: {
 id: 'phantom',
@@ -490,7 +511,6 @@ desc: 'Бесплотная тень забытого странника. Не �
 ability: 'БЕСПЛОТНОСТЬ',
 abilityDesc: 'Игнорирует знамёна — любое знамя на его клетке исчезает через 5 секунд.',
 weakness: 'Исчезновение знамени само выдаёт призрака. Нож всегда убивает его.',
-danger: 'Особая'
 },
 5: {
 id: 'mimic_deceiver',
@@ -500,7 +520,6 @@ desc: 'Коварный дух, что питается чужой уверен�
 ability: 'ИСКАЖЕНИЕ',
 abilityDesc: 'Пока жив, цифры на всех плитах в радиусе 2 показывают случайные значения! Убей — правда вернётся.',
 weakness: 'Сам по себе безобиден — главная опасность в ложных подсказках.',
-danger: 'Коварная'
 },
 6: {
 id: 'necromancer',
@@ -510,7 +529,6 @@ desc: 'Владыка мёртвых, лишившийся трона, но не
 ability: 'ВОСКРЕШЕНИЕ',
 abilityDesc: 'Погибая, возвращает к жизни 2 уже убитых монстра в случайных местах яруса.',
 weakness: 'Слуги появляются в закрытых клетках — иногда в удобных для игрока местах.',
-danger: 'Высокая'
 },
 7: {
 id: 'fog_lord',
@@ -520,7 +538,6 @@ desc: 'Бестелесное око, парящее над бездной. Ту
 ability: 'ОБЛАКО МРАКА',
 abilityDesc: 'Погибая, скрывает обратно в туман 4 случайные открытые безопасные клетки яруса.',
 weakness: 'Знамёна и сундуки не скрывает — можно использовать их как ориентир.',
-danger: 'Высокая'
 },
 8: {
 id: 'abyss_guardian',
@@ -530,7 +547,6 @@ desc: 'Каменный колосс, пробудившийся после ты
 ability: 'КАМЕННАЯ ШКУРА',
 abilityDesc: 'Ножи отскакивают от его каменной шкуры без эффекта.',
 weakness: 'Убить можно, только наступив на него (получив урон) или чужим взрывом — например, демоном.',
-danger: 'Высокая'
 },
 9: {
 id: 'shadow_king',
@@ -538,9 +554,8 @@ name: 'Король тени',
 icon: '👑',
 desc: 'Последний правитель забытого царства. Его корона поглощает сам свет.',
 ability: 'ТЕНЕВОЙ РАЗРЫВ',
-abilityDesc: 'Погибая, меняет местами до 5 пар «безопасная клетка ↔ монстр».',
+abilityDesc: 'Погибая, меняет местами до 5 пар «безопасная клетка ↔ монстр» — в том числе уже открытые плиты (кроме той, где стоит герой).',
 weakness: 'Сундук и знамёна остаются на местах — ориентиры сохраняются.',
-danger: 'Очень высокая'
 },
 10: {
 id: 'worm',
@@ -550,7 +565,6 @@ desc: 'Слепой гигант, что роется под плитами по
 ability: 'РОЕТ',
 abilityDesc: 'Каждые 12 секунд переползает в соседнюю закрытую клетку. Цифры пересчитываются — монстр не стоит на месте!',
 weakness: 'Не трогает открытые клетки, знамёна и сундуки — его маршрут ограничен.',
-danger: 'Особая'
 },
 11: {
 id: 'imp',
@@ -560,7 +574,6 @@ desc: 'Мелкая пакость из нижних туннелей. Обож�
 ability: 'ШАЛОСТЬ',
 abilityDesc: 'Когда ставишь знамя в радиусе 2 от него, знамя перескакивает на случайную соседнюю закрытую клетку.',
 weakness: 'Сам никогда не кусается — только путает.',
-danger: 'Коварная'
 },
 12: {
 id: 'blight',
@@ -570,7 +583,6 @@ desc: 'Грибница, проросшая сквозь сами плиты. Е
 ability: 'СПОРЫ',
 abilityDesc: 'Пока жива, цифры на открытых клетках рядом с ней скрыты и показаны как «?».',
 weakness: 'Не трогает сами клетки — только прячет подсказки.',
-danger: 'Коварная'
 },
 13: {
 id: 'frost_spirit',
@@ -580,7 +592,6 @@ desc: 'Осколок вечной мерзлоты, застрявший меж
 ability: 'ЗАМОРОЗКА',
 abilityDesc: 'Знамёна в радиусе 2 от него вмерзают в лёд: их нельзя снять, пока дух жив.',
 weakness: 'Ставить новые знамёна рядом можно — нельзя только снимать.',
-danger: 'Особая'
 }
 };
 // ---------- утилиты ----------
@@ -1844,10 +1855,19 @@ recalcAdjAlive();
 applyMimicDistortion();
 G.shake = 8;
 }
+// Защита: не трогаем клетку, где стоит герой (и куда он сейчас шагает)
+function heroProtected(g){
+var h = G.hero;
+if(g.x === h.cx && g.y === h.cy) return true;
+if(h.seg && g.x === h.seg.tx && g.y === h.seg.ty) return true;
+return false;
+}
 // Повелитель тумана: мрак при смерти
 function fogLordObscure(c){
 if(c.mtype !== 7) return;
-var safeRevealed = G.grid.filter(function(g){return !g.mine && g.revealed && !g.item && !g.stair;});
+var safeRevealed = G.grid.filter(function(g){
+return !g.mine && g.revealed && !g.item && !g.stair && !heroProtected(g);
+});
 shuffle(safeRevealed);
 var toHide = Math.min(4, safeRevealed.length);
 for(var i=0;i<toHide;i++){
@@ -1864,7 +1884,11 @@ G.shake = 10;
 // Король тени: разрыв при смерти
 function shadowKingSwap(c){
 if(c.mtype !== 9) return;
-var safeCells = G.grid.filter(function(g){return !g.mine && !g.revealed && !g.obstacle && !g.item && !g.stair && !g.flagged;});
+// Не трогаем клетки, которые вот-вот откроются из очереди
+var queued = {};
+for(var q=0;q<revealQueue.length;q++){queued[revealQueue[q].c.x+','+revealQueue[q].c.y]=true;}
+// Теперь подходят и закрытые, и открытые безопасные клетки (кроме клетки героя)
+var safeCells = G.grid.filter(function(g){ return !g.mine && !g.obstacle && !g.item && !g.stair && !g.flagged && !queued[g.x+','+g.y] && !heroProtected(g);});
 var minesLeft = G.grid.filter(function(g){return g.mine && g.mstate === 0;});
 shuffle(safeCells);
 shuffle(minesLeft);
@@ -1872,6 +1896,13 @@ var swaps = Math.min(5, safeCells.length, minesLeft.length);
 for(var i=0;i<swaps;i++){
 var mineSrc = minesLeft[i];
 var safeDst = safeCells[i];
+// Если монстр встал на открытую плиту — она снова скрывается в тумане
+if(safeDst.revealed){
+safeDst.revealed = false;
+safeDst.revealT = -1e9;
+G.revealedSafe = Math.max(0, G.revealedSafe - 1);
+poof(isoX(safeDst.x,safeDst.y), isoY(safeDst.x,safeDst.y)+TH2);
+}
 safeDst.mine = true;
 safeDst.mtype = mineSrc.mtype;
 safeDst.mstate = mineSrc.mstate;
@@ -4818,7 +4849,7 @@ card.innerHTML =
 '<div class="b-name">' + m.name + '</div>' +
 '<div class="b-desc">' + m.desc + '</div>' +
 '<div class="b-ability"><b>⚡ ' + m.ability + ':</b><br>' + m.abilityDesc + '</div>' +
-'<div class="b-stats">Убито: <b>' + kills + '</b><br>Опасность: <b>' + m.danger + '</b></div>';
+'<div class="b-stats">Убито: <b>' + kills + '</b></div>';
 }else{
 card.innerHTML =
 '<div class="b-icon locked">❓</div>' +
@@ -4976,10 +5007,12 @@ $('btnFlag').addEventListener('click',function(){toggleFlagMode();});
 $('btnKnife').addEventListener('click',function(){toggleKnife();});
 $('btnBestiary').addEventListener('click',toggleBestiary);
 $('btnBestiaryClose').addEventListener('click',toggleBestiary);
+$('btnBestiaryX').addEventListener('click',toggleBestiary);
 $('btnLeaders').addEventListener('click', toggleLeaders);
 $('btnTitleLeaders').addEventListener('click', toggleLeaders);
 $('btnEndLeaders').addEventListener('click', toggleLeaders);
 $('btnLeadersClose').addEventListener('click', toggleLeaders);
+$('btnLeadersX').addEventListener('click', toggleLeaders);
 
 $('btnSubmitScore').addEventListener('click', function(){
   if(scoreSubmitted) return;
