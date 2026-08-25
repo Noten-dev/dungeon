@@ -245,7 +245,23 @@ button,.card,.shopitem{touch-action:manipulation}
   .actions{width:100%;justify-content:center}
   .kicker{font-size:8px}
 }
-</style>
+/* Поля ввода для тестового меню */
+.test-input {
+    width: 100%;
+    padding: 8px;
+    background: #0f1220;
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    outline: none;
+    transition: border-color .2s;
+}
+.test-input:focus {
+    border-color: var(--amber);
+    box-shadow: 0 0 8px rgba(255,170,60,.2);
+}
 </style>
 </head>
 <body>
@@ -300,9 +316,50 @@ button,.card,.shopitem{touch-action:manipulation}
 <div class="cards" id="cards"></div>
 <div class="controls-line"><span class="hint-desktop"><b>ЛКМ / тап</b> — шаг и разведка · <b>ПКМ / долгий тап</b> — знамя · <b>K</b> — метнуть нож · <b>WASD</b> — ходьба</span><span class="hint-touch"><b>Тап</b> — шаг и разведка · <b>Долгий тап</b> — знамя · Кнопки <b>⚑ ЗНАМЯ</b> и <b>† НОЖИ</b> внизу — режимы</span></div>
 <div class="btnrow" style="margin-top:20px">
-  <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
+    <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
+    <button class="btn" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
 </div>
 </div>
+</div>
+<!-- Тестовый режим -->
+<div id="testMenu" class="screen hidden">
+    <div class="panel-big" style="max-width: 460px;">
+        <h2 style="color:var(--amber); font-size: 18px;">🛠 ТЕСТОВЫЙ РЕЖИМ</h2>
+        <p class="sub">Настройте параметры для быстрого теста</p>
+        <div style="text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; font-size: 12px; color: var(--text);">
+            <label>Ярус (1-15):<br><input type="number" id="testFloor" value="1" min="1" max="15" class="test-input"></label>
+            <label>Золото:<br><input type="number" id="testGold" value="0" min="0" max="9999" class="test-input"></label>
+            <label>Здоровье (текущее):<br><input type="number" id="testHearts" value="3" min="1" max="10" class="test-input"></label>
+            <label>Макс. HP:<br><input type="number" id="testMaxHearts" value="3" min="1" max="10" class="test-input"></label>
+            <label>Ножи (0-10):<br><input type="number" id="testKnives" value="0" min="0" max="10" class="test-input"></label>
+            <label>Фонари (0-4):<br><input type="number" id="testLanterns" value="0" min="0" max="4" class="test-input"></label>
+            <label>Карты (0-5):<br><input type="number" id="testMaps" value="0" min="0" max="5" class="test-input"></label>
+            <label style="display:flex; align-items:center; gap:8px; margin-top: 22px;">
+                <input type="checkbox" id="testArmor" style="width:18px; height:18px; cursor:pointer;"> Броня 🛡
+            </label>
+            <label>Монстр для проверки:<br>
+              <select id="testMonster" class="test-input"></select>
+            </label>
+
+            <label>Сколько рядом (0-8):<br>
+              <input type="number" id="testMonsterCount" value="2" min="0" max="8" class="test-input">
+            </label>
+
+            <label style="display:flex; align-items:center; gap:8px; margin-top: 22px;">
+              <input type="checkbox" id="testMonsterOnly" style="width:18px; height:18px; cursor:pointer;">
+              Заменить всех монстров выбранным
+            </label>
+
+            <label style="display:flex; align-items:center; gap:8px; margin-top: 22px;">
+              <input type="checkbox" id="testGod" style="width:18px; height:18px; cursor:pointer;">
+              Бессмертие для теста
+            </label>
+        </div>
+        <div class="btnrow">
+            <button class="btn primary" id="btnStartTest">НАЧАТЬ ТЕСТ</button>
+            <button class="btn" id="btnCancelTest">ОТМЕНА</button>
+        </div>
+    </div>
 </div>
 <!-- Лагерь / магазин -->
 <div id="camp" class="screen hidden">
@@ -1288,6 +1345,7 @@ item:null,taken:false,gv:0,mtype:0,mstate:0,mT:0,revealT:-1e9,pulseT:-1e9,
 decor:pickDecor(rnd),seed:rnd()*1000,stair:false,
 shielded:false,
 phantomFlagTimer:null,
+impFlagTimer:null,
 decoyNumber:null,
 spawnT:0,
 sporeHidden:false,
@@ -1301,10 +1359,13 @@ var poolMax=Math.min(RUN.floor,14);
 var t=irand(0,poolMax-1);
 
 // Бывшие боссы — не больше 1 на ярус
-if(t>=6&&t<=9&&(counts[t]||0)>=2)t=irand(0,5);
+if(t>=6&&t<=9&&(counts[t]||0)>=5)t=irand(0,6);
 
 // Подземный червь — не больше 2 на ярус
-if(t===10&&(counts[10]||0)>=2)t=irand(0,5);
+if(t===10&&(counts[10]||0)>=5)t=irand(0,9);
+
+// Морозный дкх — не больше 3 на ярус
+if(t===14&&(counts[14]||0)>=3)t=irand(0,13);
 
 // Мимик-обманщик — не больше 3 на ярус
 if(t===5&&(counts[5]||0)>=3)t=irand(0,4);
@@ -1416,6 +1477,10 @@ SND.ensure();
 RUN.active=true;RUN.floor=1;RUN.gold=0;RUN.hearts=3;RUN.maxHearts=3;
 RUN.knives=0;RUN.armor=false;RUN.lanternBuys=0;RUN.heartBuys=0;RUN.maps=0;
 RUN.kills=0;RUN.goldEarned=0;RUN.time=0;RUN.diff=d;RUN.newRec=false;
+RUN.god = false;
+RUN.testMonster = -1;
+RUN.testMonsterOnly = false;
+RUN.testMonsterCount = 0;
 scoreSubmitted=false;
 lastScore=-1;
 currentEndScore=0;
@@ -1894,6 +1959,10 @@ c.phantomFlagTimer=setTimeout(function(){
 if(c.flagged&&G.state==='play'){
 c.flagged=false;
 G.flags=Math.max(0,G.flags-1);
+if(c.impFlagTimer){
+  clearTimeout(c.impFlagTimer);
+  c.impFlagTimer = null;
+}
 SND.flagVanish();
 addText(px,py-10,'Знамя исчезло!','#a8b4c8');
 sparkle(px,py,'#a8b4c8');
@@ -1901,6 +1970,108 @@ hudSync(true);
 }
 c.phantomFlagTimer=null;
 },5000);
+}
+
+// Таймер бесёнка: знамя перепрыгивает подальше через 5 секунд
+function startImpTimer(c, px, py){
+  if(!impNear(c)) return;
+
+  if(c.impFlagTimer) clearTimeout(c.impFlagTimer);
+
+  c.impFlagTimer = setTimeout(function(){
+    c.impFlagTimer = null;
+
+    if(G.state !== 'play' || !c.flagged) return;
+
+    var imp = impNear(c);
+    if(!imp) return;
+
+    moveImpFlag(c, imp, px, py);
+  }, 5000);
+}
+
+// Подбираем для бесёнка клетку подальше
+function pickImpFarTarget(c, imp){
+  var queued = {};
+  for(var q = 0; q < revealQueue.length; q++){
+    queued[revealQueue[q].c.x + ',' + revealQueue[q].c.y] = true;
+  }
+
+  var far = [];
+  var mid = [];
+  var near = [];
+
+  for(var i = 0; i < G.grid.length; i++){
+    var n = G.grid[i];
+
+    if(n.revealed || n.flagged || queued[n.x + ',' + n.y]) continue;
+
+    var dImp = Math.hypot(n.x - imp.x, n.y - imp.y);
+    var dFlag = Math.hypot(n.x - c.x, n.y - c.y);
+
+    // Сначала ищем совсем далёкие клетки:
+    // минимум 3 клетки от бесёнка и минимум 3 от старого флага
+    if(dImp >= 3 && dFlag >= 3){
+      far.push(n);
+    }
+    // Если таких нет, будем брать хотя бы чуть подальше
+    else if(dFlag >= 2){
+      mid.push(n);
+    }
+    // Совсем запасной вариант
+    else{
+      near.push(n);
+    }
+  }
+
+  if(far.length) return choice(far);
+  if(mid.length) return choice(mid);
+  if(near.length) return choice(near);
+
+  return null;
+}
+
+// Сам перенос флага бесёнком
+function moveImpFlag(c, imp, oldPx, oldPy){
+  if(G.state !== 'play' || !c.flagged) return;
+
+  var t = pickImpFarTarget(c, imp);
+  if(!t) return;
+
+  var px = oldPx !== undefined ? oldPx : isoX(c.x, c.y);
+  var py = oldPy !== undefined ? oldPy : isoY(c.x, c.y) + TH2;
+
+  // Убираем флаг со старой клетки
+  c.flagged = false;
+  G.flags = Math.max(0, G.flags - 1);
+
+  if(c.phantomFlagTimer){
+    clearTimeout(c.phantomFlagTimer);
+    c.phantomFlagTimer = null;
+  }
+
+  // Ставим флаг на новую дальнюю клетку
+  var tx = isoX(t.x, t.y);
+  var ty = isoY(t.x, t.y) + TH2;
+
+  t.flagged = true;
+  G.flags++;
+
+  SND.impGiggle();
+
+  addText(px, py - 12, 'ХИХИ!', '#ff9ce0');
+  sparkle(px, py, '#ff9ce0');
+  sparkle(tx, ty, '#ff9ce0');
+
+  hudSync(true);
+
+  // Если новый флаг оказался на призраке — призрак тоже может его убрать
+  startPhantomTimer(t, tx, ty);
+
+  // Если хочешь, чтобы бесёнок мог снова утащить этот флаг через 5 секунд,
+  // оставь эту строку.
+  // Если нужен только один прыжок за установку флага — удали её.
+  startImpTimer(t, tx, ty);
 }
 function monsterStrike(c){
 if(G.state!=='play')return;
@@ -1918,17 +2089,19 @@ if(c.mtype===6)addText(px,py-24,'НЕКРОМАНТ ПАЛ','#a064d2');
 if(c.mtype===7)addText(px,py-24,'ТУМАН РАССЕИВАЕТСЯ','#aab3c4');
 if(c.mtype===8)addText(px,py-24,'ХРАНИТЕЛЬ РАЗРУШЕН','#ffd76e');
 if(c.mtype===9)addText(px,py-24,'КОРОЛЬ СВЕРГНУТ','#5a3a6e');
-if(RUN.armor){
-RUN.armor=false;
-SND.clank();G.shake=8;
-addText(px,py-16,'Броня разбита!','#9fd0ff');
-sparkle(px,py,'#9fd0ff');
+if(RUN.god){
+  addText(px,py-16,'ТЕСТ: УРОН 0','#9fe08a');
+}else if(RUN.armor){
+  RUN.armor=false;
+  SND.clank();G.shake=8;
+  addText(px,py-16,'Броня разбита!','#9fd0ff');
+  sparkle(px,py,'#9fd0ff');
 }else{
-var damage=(c.mtype===3)?2:1;
-RUN.hearts-=damage;
-SND.boom();G.shake=16;flashRed();
-fiery(px,py);
-addText(px,py-16,'-'+damage+' ♥','#ff6b5e');
+  var damage=(c.mtype===3)?2:1;
+  RUN.hearts-=damage;
+  SND.boom();G.shake=16;flashRed();
+  fiery(px,py);
+  addText(px,py-16,'-'+damage+' ♥','#ff6b5e');
 }
 if(c.mtype===0)trySlimeSplit(c);
 if(c.mtype===2)demonExplode(c);
@@ -2037,6 +2210,7 @@ return;
 c.flagged=false;G.flags--;
 SND.unflag();
 if(c.phantomFlagTimer){clearTimeout(c.phantomFlagTimer);c.phantomFlagTimer=null;}
+if(c.impFlagTimer){clearTimeout(c.impFlagTimer);c.impFlagTimer=null;}
 hudSync(true);
 return;
 }
@@ -2045,22 +2219,8 @@ c.flagged=true;G.flags++;
 SND.flag();
 for(var i=0;i<5;i++){addP({x:px+rand(-6,6),y:py,vz:rand(20,50),life:.5,size:1.6,col:'#ff8a6e',glow:true});}
 startPhantomTimer(c,px,py);
-// Бесёнок: знамя перескакивает на соседнюю закрытую клетку
-if(impNear(c)){
-var targets=neighbors8(c).filter(function(n){return !n.revealed&&!n.flagged;});
-if(targets.length){
-var t=choice(targets);
-c.flagged=false;G.flags--;
-if(c.phantomFlagTimer){clearTimeout(c.phantomFlagTimer);c.phantomFlagTimer=null;}
-t.flagged=true;G.flags++;
-var tx=isoX(t.x,t.y),ty=isoY(t.x,t.y)+TH2;
-SND.impGiggle();
-addText(px,py-12,'ХИХИ!','#ff9ce0');
-sparkle(px,py,'#ff9ce0');
-sparkle(tx,ty,'#ff9ce0');
-startPhantomTimer(t,tx,ty);
-}
-}
+// Бесёнок: знамя перескакивает не сразу, а через 5 секунд и подальше
+startImpTimer(c, px, py);
 hudSync(true);
 }
 function checkWin(){
@@ -2610,7 +2770,7 @@ addP({x:x,y:y-6,vx:Math.cos(a)*s,vy:Math.sin(a)*s*.5,vz:rand(20,110),g:160,life:
 }
 }
 function sparkle(x,y,col){for(var i=0;i<9;i++){addP({x:x+rand(-8,8),y:y+rand(-6,2),vz:rand(24,60),g:60,life:rand(.4,.8),size:rand(1,2.4),glow:true,col:col});}}
-function addText(x,y,str,col){texts.push({x:x,y:y,z:14,str:str,col:col,age:0,life:1.3});}
+function addText(x,y,str,col){texts.push({x:x,y:y,z:14,str:str,col:col,age:0,life:2.5});}
 // ---------- отрисовка ----------
 function dia(cx,cy,sx,sy){
 ctx.beginPath();
@@ -4885,6 +5045,203 @@ $('btnSound').textContent=SND.on?'♪ вкл':'♪ выкл';
 newGame({size:14,mines:44},true);
 buildCards();
 requestAnimationFrame(frame);
+// ---------- ТЕСТОВЫЙ РЕЖИМ ----------
+function debugSpawnMonster(type, count){
+  type = parseInt(type, 10);
+  if(isNaN(type) || type < 0 || !MONSTERS[type]) return;
+
+  count = parseInt(count, 10);
+  if(isNaN(count)) count = 0;
+  count = clamp(count, 0, 8);
+
+  if(count === 0) return;
+
+  var cs = Math.floor(G.N / 2);
+  var center = cellAt(cs, cs);
+  if(!center) return;
+
+  var queued = {};
+  for(var q = 0; q < revealQueue.length; q++){
+    queued[revealQueue[q].c.x + ',' + revealQueue[q].c.y] = true;
+  }
+
+  var near = neighbors8(center);
+  var safe = [];
+  var i, n;
+
+  for(i = 0; i < near.length; i++){
+    n = near[i];
+
+    if(
+      !queued[n.x + ',' + n.y] &&
+      !n.revealed &&
+      !n.mine &&
+      !n.item &&
+      !n.stair &&
+      !n.obstacle &&
+      !n.flagged
+    ){
+      safe.push(n);
+    }
+  }
+
+  shuffle(safe);
+
+  var changed = 0;
+
+  for(i = 0; i < safe.length && changed < count; i++){
+    n = safe[i];
+
+    n.mine = true;
+    n.mtype = type;
+    n.mstate = 0;
+    n.spawnT = performance.now() + 600;
+
+    G.mines++;
+    G.totalSafe--;
+
+    changed++;
+  }
+
+  // Если рядом не хватило пустых безопасных клеток,
+  // превращаем уже существующих соседних монстров в выбранный тип.
+  if(changed < count){
+    var mines = [];
+
+    for(i = 0; i < near.length; i++){
+      n = near[i];
+
+      if(n.mine && n.mstate === 0 && !n.revealed){
+        mines.push(n);
+      }
+    }
+
+    shuffle(mines);
+
+    for(i = 0; i < mines.length && changed < count; i++){
+      mines[i].mtype = type;
+      mines[i].spawnT = performance.now() + 600;
+      changed++;
+    }
+  }
+
+  recalcAdjAlive();
+  applyMimicDistortion();
+  hudSync(true);
+
+  console.log('[TEST] Заспавнен монстр:', MONSTERS[type].name, 'штук:', changed);
+}
+function fillTestMonsterSelect(){
+  var sel = $('testMonster');
+  if(!sel) return;
+
+  sel.innerHTML = '<option value="-1">Случайно / без теста</option>';
+
+  var keys = Object.keys(MONSTERS);
+  keys.sort(function(a, b){
+    return parseInt(a, 10) - parseInt(b, 10);
+  });
+
+  for(var i = 0; i < keys.length; i++){
+    var m = MONSTERS[keys[i]];
+    var opt = document.createElement('option');
+    opt.value = keys[i];
+    opt.textContent = m.icon + ' ' + m.name;
+    sel.appendChild(opt);
+  }
+}
+
+fillTestMonsterSelect();
+function startTestRun() {
+    SND.ensure();
+
+    // 1. Считываем значения из полей ввода
+    var testFloor = parseInt($('testFloor').value) || 1;
+    var testGold = parseInt($('testGold').value) || 0;
+    var testMaxHearts = parseInt($('testMaxHearts').value) || 3;
+    var testHearts = parseInt($('testHearts').value) || testMaxHearts;
+    var testKnives = parseInt($('testKnives').value) || 0;
+    var testLanterns = parseInt($('testLanterns').value) || 0;
+    var testMaps = parseInt($('testMaps').value) || 0;
+    var testArmor = $('testArmor').checked;
+
+    // 2. Инициализируем базовый забег (используем сложность "Гробовник" для теста)
+    var diff = DIFFS[1];
+    RUN.active = true;
+    RUN.diff = diff;
+    RUN.kills = 0;
+    RUN.goldEarned = 0;
+    RUN.time = 0;
+    RUN.newRec = false;
+    scoreSubmitted = false;
+    lastScore = -1;
+    currentEndScore = 0;
+    G.rot = 0;
+
+    // 3. Подменяем стандартные значения на тестовые
+    RUN.floor = clamp(testFloor, 1, 15);
+    RUN.gold = testGold;
+    RUN.maxHearts = clamp(testMaxHearts, 1, 10);
+    RUN.hearts = clamp(testHearts, 1, RUN.maxHearts);
+    RUN.knives = clamp(testKnives, 0, 10);
+    RUN.lanternBuys = clamp(testLanterns, 0, 4);
+    RUN.maps = clamp(testMaps, 0, 5);
+    RUN.armor = testArmor;
+    RUN.heartBuys = 0;
+    var testMonsterEl = $('testMonster');
+    var testMonsterCountEl = $('testMonsterCount');
+    var testMonsterOnlyEl = $('testMonsterOnly');
+    var testGodEl = $('testGod');
+
+    var testMonster = testMonsterEl ? parseInt(testMonsterEl.value, 10) : -1;
+    var testMonsterCount = testMonsterCountEl ? parseInt(testMonsterCountEl.value, 10) : 2;
+
+    RUN.testMonster = isNaN(testMonster) ? -1 : testMonster;
+    RUN.testMonsterCount = isNaN(testMonsterCount) ? 2 : clamp(testMonsterCount, 0, 8);
+    RUN.testMonsterOnly = !!(testMonsterOnlyEl && testMonsterOnlyEl.checked);
+    RUN.god = !!(testGodEl && testGodEl.checked);
+
+    // 4. Генерируем карту (newFloor использует RUN.floor для размера и плотности мин)
+    newFloor();
+    if(RUN.testMonster >= 0){
+    if(RUN.testMonsterOnly){
+      for(var gi = 0; gi < G.grid.length; gi++){
+        if(G.grid[gi].mine){
+          G.grid[gi].mtype = RUN.testMonster;
+        }
+      }
+
+      recalcAdjAlive();
+      applyMimicDistortion();
+    }
+
+    debugSpawnMonster(RUN.testMonster, RUN.testMonsterCount);
+  }
+
+    // 5. Скрываем меню и показываем игру
+    $('title').classList.add('hidden');
+    $('testMenu').classList.add('hidden');
+    $('end').classList.add('hidden');
+    $('camp').classList.add('hidden');
+    $('help').classList.add('hidden');
+    $('bestiary').classList.add('hidden');
+    $('leaders').classList.add('hidden');
+    $('hud').classList.remove('hidden');
+
+    banner('ТЕСТ: ЯРУС ' + RUN.floor, floorTag(RUN.floor));
+    hudSync(true);
+}
+
+// Обработчики кнопок тестового меню
+$('btnTitleTest').addEventListener('click', function() {
+    SND.ensure(); SND.click();
+    $('testMenu').classList.remove('hidden');
+});
+$('btnCancelTest').addEventListener('click', function() {
+    SND.click();
+    $('testMenu').classList.add('hidden');
+});
+$('btnStartTest').addEventListener('click', startTestRun);
 </script>
 </body>
 </html>
