@@ -610,8 +610,9 @@ h1{font-size:20px;margin-bottom:8px}
 Пятнадцать ярусов до сердца горы. Дойдёшь ли ты до конца?</p>
 <div class="cards" id="cards"></div>
 <span class="hint-touch">Тап — шаг · Двойной тап — знамя · Перетаскивание — камера · Пинч — зум и поворот</span><div class="btnrow" style="margin-top:20px">
-    <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
-    <button class="btn" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
+  <button class="btn primary hidden" id="btnContinue">▶ ПРОДОЛЖИТЬ</button>
+  <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
+  <button class="btn hidden" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
 </div>
 </div>
 </div>
@@ -1321,6 +1322,136 @@ flags:0,revealedSafe:0,totalSafe:0,lightBonus:0,fogLift:false,
 hero:{cx:0,cy:0,rx:0,ry:0,seg:null,queue:[],pending:null,stepT:0,face:1,fdir:{dx:0,dy:1},last:{x:0,y:0}},
 cam:{x:0,y:0,zoom:1,tzoom:1},shake:0,lx:0,ly:0,torches:[],
 hover:null,hoverPath:null,flagMode:false,knifeMode:false,bombMode:false,diff:null,rot:0,stateT:0};
+// ---------- СОХРАНЕНИЕ ЗАБЕГА ----------
+var RUN_SAVE_KEY = 'td_run_save_v1';
+
+function clearRunSave(){
+  try{
+    localStorage.removeItem(RUN_SAVE_KEY);
+  }catch(e){}
+  if (typeof updateContinueButton === 'function') updateContinueButton();
+}
+
+function saveRun(phase){
+  // Не сохраняем тестовые режимы и бессмертие
+  if (!RUN.active || RUN.isTest) return;
+  if (RUN.god || RUN.testMonster >= 0 || RUN.testMonsterOnly) return;
+
+  // Финальная победа не сохраняется
+  if (RUN.floor >= 20 && G.state === 'won') return;
+
+  // Для обычного сохранения разрешаем только состояние игры
+  // Для лагеря разрешаем сохраняться даже при G.state === 'won'
+  if (phase !== 'camp' && G.state !== 'play') return;
+
+  var data = {
+    v: 1,
+    phase: phase || 'play',
+    ts: Date.now(),
+    diff: RUN.diff ? RUN.diff.id : 'robber',
+    floor: RUN.floor,
+    gold: RUN.gold,
+    hearts: RUN.hearts,
+    maxHearts: RUN.maxHearts,
+    knives: RUN.knives,
+    bombs: RUN.bombs,
+    armor: RUN.armor,
+    lanternBuys: RUN.lanternBuys,
+    heartBuys: RUN.heartBuys,
+    maps: RUN.maps,
+    kills: RUN.kills,
+    goldEarned: RUN.goldEarned,
+    time: RUN.time,
+    floorPools: G.floorPools || null
+  };
+
+  try{
+    localStorage.setItem(RUN_SAVE_KEY, JSON.stringify(data));
+    if (typeof updateContinueButton === 'function') updateContinueButton();
+  }catch(e){}
+}
+
+function loadRunSave(){
+  try{
+    var d = JSON.parse(localStorage.getItem(RUN_SAVE_KEY) || 'null');
+    if (!d || d.v !== 1) return null;
+    if (typeof d.floor !== 'number') return null;
+    return d;
+  }catch(e){
+    return null;
+  }
+}
+
+function updateContinueButton(){
+  var btn = document.getElementById('btnContinue');
+  if (!btn) return;
+
+  var s = loadRunSave();
+
+  if (s) {
+    btn.classList.remove('hidden');
+    btn.textContent = '▶ ПРОДОЛЖИТЬ (ЯРУС ' + s.floor + (s.phase === 'camp' ? ' · ЛАГЕРЬ' : '') + ')';
+  } else {
+    btn.classList.add('hidden');
+  }
+}
+
+function continueRun(){
+  var s = loadRunSave();
+  if (!s) return;
+
+  SND.ensure();
+  SND.click();
+
+  var d = null;
+  for (var i = 0; i < DIFFS.length; i++) {
+    if (DIFFS[i].id === s.diff) {
+      d = DIFFS[i];
+      break;
+    }
+  }
+  if (!d) d = DIFFS[1];
+
+  // Запускаем базу, но как восстановление из сейва
+  startRun(d, true);
+
+  // Подменяем стартовые значения на сохранённые
+  RUN.diff = d;
+  RUN.floor = s.floor;
+  RUN.gold = s.gold;
+  RUN.hearts = s.hearts;
+  RUN.maxHearts = s.maxHearts;
+  RUN.knives = s.knives;
+  RUN.bombs = s.bombs;
+  RUN.armor = s.armor;
+  RUN.lanternBuys = s.lanternBuys;
+  RUN.heartBuys = s.heartBuys;
+  RUN.maps = s.maps;
+  RUN.kills = s.kills;
+  RUN.goldEarned = s.goldEarned;
+  RUN.time = s.time || 0;
+  RUN.newRec = false;
+
+  if (s.floorPools) {
+    G.floorPools = s.floorPools;
+  } else {
+    generateMonsterPool();
+  }
+
+  if (s.phase === 'camp') {
+    // Если закрыли игру в лагере — возвращаем лагерь
+    G.state = 'won';
+    openCamp(0);
+  } else {
+    // Иначе начинаем текущий сохранённый ярус
+    newFloor();
+    announceFloor();
+    saveRun('play');
+  }
+
+  hudSync(true);
+  updateContinueButton();
+}
 var now=0;
 var ROTANIM = {
   active: false,
@@ -1902,9 +2033,9 @@ G.revealedSafe++;
 addText(isoX(c.x,c.y),isoY(c.x,c.y)+TH2,'Карта разведчика','#9fd0ff');
 checkWin();
 }
-function startRun(d){
+function startRun(d, fromSave){
 SND.ensure();
-RUN.active=true;RUN.floor=1;RUN.gold=0;RUN.hearts=3;RUN.maxHearts=3;
+RUN.active=true;RUN.isTest=false;RUN.floor=1;RUN.gold=0;RUN.hearts=3;RUN.maxHearts=3;
 RUN.knives=0;RUN.armor=false;RUN.lanternBuys=0;RUN.heartBuys=0;RUN.maps=0;
 RUN.kills=0;RUN.goldEarned=0;RUN.time=0;RUN.diff=d;RUN.newRec=false;
 RUN.god = false;
@@ -1918,6 +2049,7 @@ currentEndScore=0;
 G.rot=0;
 bossAbilityTimer = 0;
 currentBossAbility = null;
+if (!fromSave) clearRunSave();
 generateMonsterPool();
 newFloor();
 document.getElementById('title').classList.add('hidden');
@@ -1927,7 +2059,10 @@ document.getElementById('help').classList.add('hidden');
 document.getElementById('bestiary').classList.add('hidden');
 document.getElementById('leaders').classList.add('hidden');
 document.getElementById('hud').classList.remove('hidden');
-announceFloor();
+if (!fromSave) {
+  announceFloor();
+  saveRun('play');
+}
 }
 // ---------- генерация мин и предметов ----------
 function placeMines(fc){
@@ -3218,6 +3353,9 @@ function victory(){
 if(ROTANIM.active) finishRotAnim();
 
 G.state='won';G.stateT=now;G.fogLift=true;revealQueue.length=0;
+if (RUN.floor >= 20) {
+  clearRunSave();
+}
 SND.win();
 var bonus=0;
 RUN.gold+=bonus;RUN.goldEarned+=bonus;
@@ -3260,6 +3398,7 @@ if(ROTANIM.active) finishRotAnim();
 
 G.state='lost';G.stateT=now;G.fogLift=true;revealQueue.length=0;
 RUN.active=false;
+clearRunSave();
 SND.lose();
 for(var i=0;i<G.grid.length;i++){
 var c=G.grid[i];
@@ -6282,6 +6421,7 @@ $('campBonus').textContent='💰 Ищите сундук с золотом на 
 $('btnDescend').textContent='▼ СПУСТИТЬСЯ НА ЯРУС '+(RUN.floor+1);
 renderCamp();
 $('camp').classList.remove('hidden');
+saveRun('camp');
 }
 function renderCamp(){
 $('campRes').innerHTML='<span class="coin"></span> '+RUN.gold+
@@ -6310,6 +6450,7 @@ SND.buy();
 toast(it.name+': куплено!');
 renderCamp();
 hudSync(true);
+saveRun('camp');
 });
 d.appendChild(b);
 g.appendChild(d);
@@ -6365,6 +6506,9 @@ function showEnd(won){
   $('hud').classList.add('hidden');
 }
 function toMenu(){
+if (RUN.active && G.state === 'play') {
+  saveRun('play');
+}
 RUN.active=false;
 G.rot=0;
 G.knifeMode=false;G.flagMode=false;
@@ -6397,6 +6541,7 @@ $('camp').classList.add('hidden');
 RUN.floor++;
 newFloor();
 announceFloor();
+saveRun('play');
 });
 $('btnAgain').addEventListener('click',function(){SND.click();startRun(RUN.diff);});
 $('btnToMenu').addEventListener('click',function(){SND.click();toMenu();});
@@ -6481,6 +6626,8 @@ if(document.fonts&&document.fonts.load){document.fonts.load('12px "Press Start 2
 $('btnSound').textContent=SND.on?'♪ вкл':'♪ выкл';
 newGame({size:14,mines:44},true);
 buildCards();
+$('btnContinue').addEventListener('click', continueRun);
+updateContinueButton();
 requestAnimationFrame(frame);
 // ---------- ТЕСТОВЫЙ РЕЖИМ ----------
 function debugSpawnMonster(type, count){
@@ -6605,6 +6752,7 @@ function startTestRun() {
     // 2. Инициализируем базовый забег (используем сложность "Гробовник" для теста)
     var diff = DIFFS[1];
     RUN.active = true;
+    RUN.isTest = true;
     RUN.diff = diff;
     RUN.kills = 0;
     RUN.goldEarned = 0;
@@ -6681,6 +6829,11 @@ $('btnCancelTest').addEventListener('click', function() {
     $('testMenu').classList.add('hidden');
 });
 $('btnStartTest').addEventListener('click', startTestRun);
+window.addEventListener('pagehide', function(){
+  if (RUN.active && G.state === 'play') {
+    saveRun('play');
+  }
+});
 </script>
 </body>
 </html>
