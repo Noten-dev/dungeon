@@ -864,10 +864,48 @@ buy:function(r){r.armor=true;}},
 price:function(){return 60;},can:function(r){return r.maps<5;},
 buy:function(r){r.maps++;}},
 ];
+// ---------- КАЧЕСТВО ----------
+var frameTick=0;
+
+var QUALITY = {
+  level: 2,               // 0=низкое, 1=среднее, 2=высокое
+  shadows: true,          // shadowBlur
+  dpr: Math.min(devicePixelRatio||1, 2),
+  fog: 16,                // слоёв экранного тумана
+  dust: 30,               // пылинок
+  particles: 650,         // лимит партиклов
+  torchStrips: 3,         // полос света на стенах
+  brightStep: 1           // как часто пересчитывать свет (1=каждый кадр)
+};
+
+// Автоопределение слабых устройств
+(function(){
+  var mem   = navigator.deviceMemory || 4;
+  var cores = navigator.hardwareConcurrency || 4;
+  var small = Math.min(screen.width, screen.height) < 700;
+  if(mem <= 2 || cores <= 2 || (small && mem <= 3)){
+    QUALITY.level = 0;
+  } else if(mem <= 4 || cores <= 4){
+    QUALITY.level = 1;
+  }
+  if(QUALITY.level === 0){
+    QUALITY.shadows=false; QUALITY.dpr=1; QUALITY.fog=5;
+    QUALITY.dust=8; QUALITY.particles=140; QUALITY.torchStrips=1; QUALITY.brightStep=4;
+  } else if(QUALITY.level === 1){
+    QUALITY.shadows=false; QUALITY.dpr=Math.min(devicePixelRatio||1,1.5);
+    QUALITY.fog=9; QUALITY.dust=16; QUALITY.particles=320; QUALITY.torchStrips=2; QUALITY.brightStep=2;
+  }
+})();
+
+// Помощники для свечения (заменяют прямые shadowColor/shadowBlur)
+function setGlow(color, blur){
+  if(QUALITY.shadows){ ctx.shadowColor=color; ctx.shadowBlur=blur; }
+}
+function clearGlow(){ ctx.shadowColor='transparent'; ctx.shadowBlur=0; }
 // ---------- канвас ----------
 var cv=document.getElementById('game'),ctx=cv.getContext('2d');
 var W=innerWidth,H=innerHeight,DPR=1;
-function resize(){W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';}
+function resize(){W=innerWidth;H=innerHeight;DPR = QUALITY.dpr;cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';}
 addEventListener('resize',resize);resize();
 // ---------- процедурный фон ----------
 var noiseCv=document.createElement('canvas');
@@ -1786,21 +1824,28 @@ l += .55 * Math.pow(clamp(1 - dd / 2.4, 0, 1), 1.5);
 }
 return Math.min(l, 1.15);
 }
-function brightOf(c) {
-var l = lightAt(c.x, c.y);
-var b = c.revealed
-? .16 + .95 * l
-: .05 + .28 * l;
-if (c.revealed && now - c.revealT < 300) {
-b += (1 - (now - c.revealT) / 300) * .5;
+function brightOf(c){
+  // у каждой клетки своя «очередь» — обновляется раз в brightStep кадров
+  var slot = ((c.x * 7 + c.y * 13) % QUALITY.brightStep + QUALITY.brightStep) % QUALITY.brightStep;
+  if(c._b === undefined || slot === frameTick){
+    c._b = computeBright(c);
+  }
+  return c._b;
 }
-var t = levelTone();
-b *= lerp(1, .40, t);
-if (G.fogLift) {
-b = Math.max(b, lerp(.6, .45, t));
+
+function computeBright(c){
+  // сюда перенеси текущее тело brightOf без изменений
+  var l = lightAt(c.x, c.y);
+  var b = c.revealed ? .16 + .95*l : .05 + .28*l;
+  if(c.revealed && now - c.revealT < 300){
+    b += (1 - (now - c.revealT)/300) * .5;
+  }
+  var t = levelTone();
+  b *= lerp(1, .40, t);
+  if(G.fogLift){ b = Math.max(b, lerp(.6,.45,t)); }
+  return b;
 }
-return b;
-}
+
 function stoneCol(b, mul, jit) {
   var k = clamp(b * mul, 0, 1.15);
   var m = Math.min(1, k);
@@ -1871,7 +1916,7 @@ l+=.6*Math.pow(clamp(1-d/2.4,0,1),1.4)*torchFlick(tp);
 return Math.min(l,1);
 }
 function torchWallGlow(gx0,gy0,gx1,gy1,w,hgt){
-var strips=3;
+var strips = QUALITY.torchStrips;
 ctx.save();
 for(var i=0;i<strips;i++){
 var um=(i+.5)/strips;
@@ -1888,7 +1933,7 @@ ctx.fillStyle=g;
 ctx.fillRect(w*i/strips,-hgt,w/strips+0.6,hgt);
 }
 var sh=L0-L;
-if(sh>0.06){
+if(QUALITY.level > 0 && sh > 0.06){
 ctx.globalCompositeOperation='source-over';
 var g2=ctx.createLinearGradient(0,-hgt,0,0);
 g2.addColorStop(0,'rgba(5,6,10,'+(0.5*Math.min(sh,1)).toFixed(3)+')');
@@ -3488,7 +3533,7 @@ if(p)G.hoverPath=p.concat([c]);
 }
 // ---------- партиклы ----------
 function addP(o){
-if(parts.length>650)return;
+if(parts.length > QUALITY.particles) return;
 var base={x:0,y:0,z:0,vx:0,vy:0,vz:0,g:0,life:.6,age:0,size:2,col:'#fff',glow:false,drag:1};
 for(var key in o){base[key]=o[key];}
 parts.push(base);
@@ -3891,7 +3936,7 @@ ctx.textAlign='center';ctx.textBaseline='middle';
 ctx.globalAlpha=clamp(b*1.15,0,1);
 var spAl=.55+.45*Math.sin(now*.006+c.seed);
 ctx.fillStyle='rgba(150,200,95,'+spAl+')';
-ctx.shadowColor='#8cc060';ctx.shadowBlur=9;
+setGlow(NUMCOL[c.adj], 10*Math.min(b,1));
 ctx.fillText('?',cx,cy-(c.stair?11:2));
 ctx.restore();
 return;
@@ -5284,7 +5329,7 @@ ctx.fillStyle='#3b2a20';ctx.fillRect(-8,-11,16,3);
 ctx.fillStyle='#d9a441';ctx.fillRect(-1.5,-11.5,3,4);
 ctx.fillStyle='#6b3327';ctx.beginPath();ctx.arc(0,-26,8,0,Math.PI*2);ctx.fill();
 ctx.fillStyle='#151020';ctx.beginPath();ctx.arc(0,-25.5,5.2,0,Math.PI*2);ctx.fill();
-ctx.save();ctx.shadowColor='#ffcf6e';ctx.shadowBlur=4;ctx.fillStyle='#ffcf6e';
+ctx.save(); setGlow('#ffcf6e',4);ctx.fillStyle='#ffcf6e';
 ctx.beginPath();ctx.arc(-2,-25.5,1.1,0,Math.PI*2);ctx.arc(2,-25.5,1.1,0,Math.PI*2);ctx.fill();ctx.restore();
 ctx.strokeStyle='#5b4230';ctx.lineWidth=2.5;
 ctx.beginPath();ctx.moveTo(f*7,-14);ctx.lineTo(f*15,-27);ctx.stroke();
@@ -5431,7 +5476,8 @@ function drawScreenFog(dt){
 var dens=.05+.07*(1-clamp(G.revealedSafe/Math.max(G.totalSafe,1),0,1));
 var base=Math.max(W,H);
 ctx.save();
-for(var i=0;i<fogLayers.length;i++){
+var fogCount = Math.min(fogLayers.length, QUALITY.fog);
+for(var i=0;i<fogCount;i++){
 var f=fogLayers[i];
 f.x+=f.vx*dt/W; f.y+=f.vy*dt/H;
 if(f.x<-0.7)f.x=1.7; if(f.x>1.7)f.x=-0.7;
@@ -5701,7 +5747,8 @@ ctx.fillText(t.str,t.x,t.y-t.z);
 ctx.restore();
 ctx.restore();
 ctx.save();
-for(var di=0;di<dustMotes.length;di++){
+var dustCount = Math.min(dustMotes.length, QUALITY.dust);
+for(var di=0;di<dustCount;di++){
 var dm=dustMotes[di];
 ctx.globalAlpha=dm.alpha*(0.5+0.5*Math.sin(now*.0015+dm.phase));
 ctx.fillStyle='#c4b890';
@@ -5718,6 +5765,7 @@ var lastTs=performance.now();
 function frame(ts){
 var dt=clamp((ts-lastTs)/1000,0,.05);
 lastTs=ts;now=ts;
+frameTick = (frameTick + 1) % QUALITY.brightStep;
 
 if(paused){ requestAnimationFrame(frame); return; }
 
