@@ -50,6 +50,8 @@ background:rgba(20,23,34,.9);border:1px solid var(--line);border-radius:5px;padd
 background:var(--panel);color:var(--text);border:1px solid var(--line);cursor:pointer;transition:.15s}
 #btnFlag.active{background:#5c1f1a;border-color:#ff8a6e;color:#ffd9c9;box-shadow:0 0 14px rgba(255,110,80,.4)}
 #btnKnife.active{background:#4a3d12;border-color:#ffd76e;color:#fff0c0;box-shadow:0 0 14px rgba(255,215,110,.4)}
+#btnBomb.active{background:#1f3a5c;border-color:#6ec8ff;color:#d9efff;box-shadow:0 0 14px rgba(110,200,255,.4)}
+#btnBomb.off{opacity:.45}
 #btnKnife.off{opacity:.45}
 @media(pointer:fine){#btnFlag{display:none}}
 /* ---------- toast / banner ---------- */
@@ -589,6 +591,7 @@ h1{font-size:20px;margin-bottom:8px}
 <span class="hint-touch">Тап — шаг · Двойной тап — знамя · Перетаскивание — камера · Пинч — зум и поворот</span><div class="modebtns">
 <button id="btnFlag" class="modebtn">⚑ ЗНАМЯ</button>
 <button id="btnKnife" class="modebtn">† НОЖИ: 0</button>
+<button id="btnBomb" class="modebtn">✸ БОМБА: 0</button>
 </div>
 </div>
 </div>
@@ -623,6 +626,7 @@ h1{font-size:20px;margin-bottom:8px}
             <label>Здоровье (текущее):<br><input type="number" id="testHearts" value="3" min="1" max="10" class="test-input"></label>
             <label>Макс. HP:<br><input type="number" id="testMaxHearts" value="3" min="1" max="10" class="test-input"></label>
             <label>Ножи (0-10):<br><input type="number" id="testKnives" value="0" min="0" max="10" class="test-input"></label>
+            <label>Бомбы (0-10):<br><input type="number" id="testBombs" value="0" min="0" max="10" class="test-input"></label>
             <label>Фонари (0-4):<br><input type="number" id="testLanterns" value="0" min="0" max="4" class="test-input"></label>
             <label>Карты (0-5):<br><input type="number" id="testMaps" value="0" min="0" max="5" class="test-input"></label>
             <label style="display:flex; align-items:center; gap:8px; margin-top: 22px;">
@@ -695,10 +699,11 @@ h1{font-size:20px;margin-bottom:8px}
 <li><b>💰 Сундук.</b> На каждом ярусе спрятан сундук с крупной добычей.</li>
 <li><b>Зачисти ярус</b> (все безопасные плиты) — откроется лагерь торговца, затем спуск глубже. Монстров становится больше.</li>
 <li><b>† Нож</b> — <span class="k">K</span> затем клик по закрытой плите: убивает монстра издалека. Промах — нож потерян.</li>
+<li><b>✸ Бомба</b> — <span class="k">V</span> затем клик по стене: разрушает препятствие.</li>
 <li><b>🛡 Броня</b> блокирует один удар. <b>✚ Зелья</b> и <b>♥ сердца</b> продаются в лагере.</li>
 <li>Каждая убитый монстр роняет немного золота.</li>
 <li><b>Новые монстры.</b> Каждый ярус в подземелье просыпается новый вид — всего 14. Изучай бестиарий, чтобы знать их способности.</li>
-<li><b>Пятнадцать ярусов</b> отделяют тебя от сердца горы. Зачистишь все — победа.</li>
+<li><b>19 ярусов</b> отделяют тебя от сердца горы. Зачистишь все — победа.</li>
 <li>Движение: <span class="k">ЛКМ</span> <span class="k">WASD</span> <span class="k">СТРЕЛКИ</span> · знамя перед собой: <span class="k">SPACE</span> · звук: <span class="k">M</span> · рестарт: <span class="k">R</span></li>
 </ul>
 <div class="btnrow"><button class="btn primary" id="btnHelpClose">В БОЙ</button></div>
@@ -1052,6 +1057,9 @@ buy:function(r){r.lanternBuys++;}},
 {id:'knife',icon:'†',name:'МЕТАТЕЛЬНЫЙ НОЖ',desc:'Убей монстра издалека (K)',
 price:function(){return 40;},can:function(r){return r.knives<10;},
 buy:function(r){r.knives++;}},
+{id:'bomb',icon:'✸',name:'МАГИЧЕСКАЯ БОМБА',desc:'Ломает стены и препятствия (V)',
+price:function(){return 55;},can:function(r){return r.bombs<5;},
+buy:function(r){r.bombs++;}},
 {id:'armor',icon:'🛡',name:'КОСТЯНАЯ БРОНЯ',desc:'Блокирует один удар',
 price:function(){return 70;},can:function(r){return !r.armor;},
 buy:function(r){r.armor=true;}},
@@ -1306,13 +1314,13 @@ return {unlocked:unlocked, total:total};
 }
 };
 // ---------- состояние ----------
-var RUN={active:false,floor:1,gold:0,hearts:3,maxHearts:3,knives:0,armor:false,
+var RUN={active:false,floor:1,gold:0,hearts:3,maxHearts:3,knives:0,bombs:0,armor:false,
 lanternBuys:0,heartBuys:0,maps:0,kills:0,goldEarned:0,time:0,diff:null,newRec:false};
 var G={state:'menu',N:9,mines:0,grid:[],order:[],firstDone:false,started:false,
 flags:0,revealedSafe:0,totalSafe:0,lightBonus:0,fogLift:false,
 hero:{cx:0,cy:0,rx:0,ry:0,seg:null,queue:[],pending:null,stepT:0,face:1,fdir:{dx:0,dy:1},last:{x:0,y:0}},
 cam:{x:0,y:0,zoom:1,tzoom:1},shake:0,lx:0,ly:0,torches:[],
-hover:null,hoverPath:null,flagMode:false,knifeMode:false,diff:null,rot:0,stateT:0};
+hover:null,hoverPath:null,flagMode:false,knifeMode:false,bombMode:false,diff:null,rot:0,stateT:0};
 var now=0;
 var ROTANIM = {
   active: false,
@@ -1324,7 +1332,7 @@ var wormT=0; // таймер перемещения подземных черв�
 var bossAbilityTimer = 0;           // таймер смены способности
 var currentBossAbility = null;      // текущая способность Хранителя
 var BOSS_ABILITY_DURATION = 15;     // секунд на одну способность
-var lastH=-1,lastMH=-1,lastAr=false,lastM=-999,lastG=-1,lastT='',lastF=-1,lastK='',lastScore=-1;
+var lastH=-1,lastMH=-1,lastAr=false,lastM=-999,lastG=-1,lastT='',lastF=-1,lastK='',lastB=-1,lastScore=-1;
 var scoreSubmitted=false;
 var currentEndScore=0;var revealQueue=[],parts=[],texts=[],bats=[],nextBat=4000;
 function idx(x,y){return y*G.N+x;}
@@ -1844,8 +1852,10 @@ function newFloor(){
 
     if(RUN.maps>0){RUN.maps--;applyScout();}
     G.knifeMode=false;G.flagMode=false;
+    G.bombMode=false;
     document.getElementById('btnFlag').classList.remove('active');
     document.getElementById('btnKnife').classList.remove('active');
+    document.getElementById('btnBomb').classList.remove('active');
     hudSync(true);
 
     // === НОВОЕ: инициализация таймера босса на 20 ярусе ===
@@ -1898,6 +1908,7 @@ RUN.active=true;RUN.floor=1;RUN.gold=0;RUN.hearts=3;RUN.maxHearts=3;
 RUN.knives=0;RUN.armor=false;RUN.lanternBuys=0;RUN.heartBuys=0;RUN.maps=0;
 RUN.kills=0;RUN.goldEarned=0;RUN.time=0;RUN.diff=d;RUN.newRec=false;
 RUN.god = false;
+RUN.bombs=0;
 RUN.testMonster = -1;
 RUN.testMonsterOnly = false;
 RUN.testMonsterCount = 0;
@@ -3104,6 +3115,27 @@ recalcAdjAlive();
 hudSync(true);
 checkWin();
 }
+function useBomb(c){
+  if(RUN.bombs<=0){G.bombMode=false;return;}
+  if(!c)return;
+  if(!c.obstacle){toast('Бомба ломает только стены');SND.deny();return;}
+  RUN.bombs--;
+  G.bombMode=false;
+  document.getElementById('btnBomb').classList.remove('active');
+  if(c.flagged){c.flagged=false;G.flags--;}
+  c.obstacle=false;
+  c.revealed=true;
+  c.revealT=now;
+  G.revealedSafe++;
+  SND.explode();
+  fiery(isoX(c.x,c.y),isoY(c.x,c.y)+TH2);
+  addText(isoX(c.x,c.y),isoY(c.x,c.y)+TH2-16,'БАХ!','#7ec8ff');
+  G.shake=10;
+  ensureConnectivity();   // вдруг открылся новый проход
+  recalcAdjAlive();
+  hudSync(true);
+  checkWin();
+}
 function tryChord(c){
     if(c.adj <= 0 || !G.firstDone) return false;
     // Пещерный Ткач: паутина блокирует аккорд
@@ -3346,6 +3378,7 @@ function actCell(c){
 if(!c || G.state !== 'play' || ROTANIM.active) return;
 if(G.knifeMode){throwKnife(c);return;}
 if(G.flagMode){toggleFlag(c);return;}
+if(G.bombMode){useBomb(c);return;}
 if(c.flagged){toast('Здесь уже стоит знамя');SND.deny();return;}
 if(c.revealed){
 if(c.obstacle){toast('Здесь непроходимое препятствие');SND.deny();return;}
@@ -3454,13 +3487,13 @@ var lpTimer=null,lpDone=false,downPos=null;
 var isDragging = false;
 var dragStart = {x:0, y:0};
 var camStart = {x:0, y:0};
-var DRAG_THRESHOLD = 12; // пикселей, после которых считаем жест "перетаскивание"
+var DRAG_THRESHOLD = 60; // пикселей, после которых считаем жест "перетаскивание"
 
-// Двойной тап
+// === Двойной тап ===
 var lastTapTime = 0;
 var lastTapPos = {x:0, y:0};
-var DOUBLE_TAP_DELAY = 320; // мс
-var DOUBLE_TAP_DIST = 25;   // пикселей
+var DOUBLE_TAP_DELAY = 250; // мс
+var DOUBLE_TAP_DIST = 30;   // пикселей
 
 // ---------- поддержка пинч-зума и вращения ----------
 var activeTouches = new Map();
@@ -3480,18 +3513,16 @@ cv.addEventListener('pointermove', function(e){
             var pts = [];
             activeTouches.forEach(function(p){ pts.push(p); });
             if(pts.length >= 2){
-                var d = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
-                var angle = Math.atan2(pts[1].y-pts[0].y, pts[1].x-pts[0].x);
+                var d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+                var angle = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
                 var angleDiff = angle - pinchState.startAngle;
 
-                // Зум
                 if(pinchState.startDist > 0){
                     var nz = clamp(pinchState.startZoom * d / pinchState.startDist, .35, 2.2);
                     G.cam.zoom = nz;
                     G.cam.tzoom = nz;
                 }
-                // Вращение каждые 45°
-                var rotSteps = Math.round(angleDiff / (Math.PI/4));
+                var rotSteps = Math.round(angleDiff / (Math.PI / 4));
                 var newRot = (pinchState.startRot + rotSteps + 4) % 4;
                 if(newRot !== G.rot && !ROTANIM.active){
                     rotateView(newRot - G.rot);
@@ -3500,33 +3531,40 @@ cv.addEventListener('pointermove', function(e){
             return;
         }
 
-        // Один палец: перетаскивание карты ИЛИ отмена тапа
+        // Один палец: перетаскивание ИЛИ отмена тапа
         if(downPos && activeTouches.size === 1){
             var dx = e.clientX - dragStart.x;
             var dy = e.clientY - dragStart.y;
             var dist = Math.hypot(dx, dy);
 
-            if(dist > DRAG_THRESHOLD){
+            if(!isDragging && dist > DRAG_THRESHOLD){
+                // Начинаем перетаскивание — запоминаем ТЕКУЩУЮ позицию как старт
                 isDragging = true;
                 if(lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
-                // Двигаем камеру
-                G.cam.x = camStart.x - dx / G.cam.zoom;
-                G.cam.y = camStart.y - dy / G.cam.zoom;
+                dragStart = {x: e.clientX, y: e.clientY};
+                camStart = {x: G.cam.x, y: G.cam.y};
+            }
+
+            if(isDragging){
+                var mdx = e.clientX - dragStart.x;
+                var mdy = e.clientY - dragStart.y;
+                G.cam.x = camStart.x - mdx / G.cam.zoom;
+                G.cam.y = camStart.y - mdy / G.cam.zoom;
             }
         }
         return;
     }
 
     // === МЫШЬ ===
-    if(lpTimer && downPos && Math.hypot(e.clientX-downPos.x, e.clientY-downPos.y) > 14){
+    if(lpTimer && downPos && Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 14){
         clearTimeout(lpTimer); lpTimer = null;
     }
-    if(ROTANIM.active){ G.hover=null; G.hoverPath=null; return; }
+    if(ROTANIM.active){ G.hover = null; G.hoverPath = null; return; }
     if(e.pointerType !== 'mouse') return;
     G.hover = screenToCell(e.clientX, e.clientY);
     computeHoverPath();
     var c = G.hover;
-    var act = c && G.state==='play' && (G.knifeMode ? !c.revealed : (G.flagMode ? !c.revealed : !c.flagged));
+    var act = c && G.state === 'play' && (G.knifeMode ? !c.revealed : (G.flagMode ? !c.revealed : !c.flagged));
     cv.style.cursor = act ? (G.knifeMode ? 'crosshair' : 'pointer') : 'default';
 });
 
@@ -3534,7 +3572,6 @@ cv.addEventListener('pointerdown', function(e){
     SND.ensure();
     if(ROTANIM.active) return;
 
-    // Тач: два пальца → пинч/вращение
     if(e.pointerType === 'touch'){
         activeTouches.set(e.pointerId, {x:e.clientX, y:e.clientY});
         if(activeTouches.size === 2){
@@ -3545,9 +3582,9 @@ cv.addEventListener('pointerdown', function(e){
             var pts = [];
             activeTouches.forEach(function(p){ pts.push(p); });
             pinchState.active = true;
-            pinchState.startDist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+            pinchState.startDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
             pinchState.startZoom = G.cam.tzoom;
-            pinchState.startAngle = Math.atan2(pts[1].y-pts[0].y, pts[1].x-pts[0].x);
+            pinchState.startAngle = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
             pinchState.startRot = G.rot;
             return;
         }
@@ -3592,34 +3629,39 @@ cv.addEventListener('pointerup', function(e){
     }
 
     if(lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
-    if(ROTANIM.active){ downPos=null; isDragging=false; return; }
+    if(ROTANIM.active){ downPos = null; isDragging = false; return; }
 
-    // Если было перетаскивание — не обрабатываем как тап
+    // Было перетаскивание — не тап
     if(isDragging){
         downPos = null;
         isDragging = false;
         return;
     }
 
+    // === ТАЧ: тап / двойной тап ===
     if(e.pointerType === 'touch' && !lpDone && downPos){
         var tapX = downPos.x, tapY = downPos.y;
-        var now = performance.now();
-
-        // === ДВОЙНОЙ ТАП → ФЛАГ ===
-        var timeDiff = now - lastTapTime;
+        var nowTime = performance.now();
+        var timeDiff = nowTime - lastTapTime;
         var posDiff = Math.hypot(tapX - lastTapPos.x, tapY - lastTapPos.y);
 
+        // ДВОЙНОЙ ТАП → флаг + отмена движения
         if(timeDiff < DOUBLE_TAP_DELAY && posDiff < DOUBLE_TAP_DIST){
-            // Двойной тап — ставим/снимаем флаг
+            G.hero.seg = null;
+            G.hero.queue.length = 0;
+            G.hero.pending = null;
             toggleFlag(screenToCell(tapX, tapY));
             if(navigator.vibrate) navigator.vibrate(20);
-            lastTapTime = 0; // сброс, чтобы тройной тап не сработал
-        } else {
-            // Одиночный тап — обычное действие
-            actCell(screenToCell(tapX, tapY));
-            lastTapTime = now;
-            lastTapPos = {x:tapX, y:tapY};
+            lastTapTime = 0;
+            downPos = null;
+            isDragging = false;
+            return;
         }
+
+        // ОДИНОЧНЫЙ ТАП → действуем сразу
+        actCell(screenToCell(tapX, tapY));
+        lastTapTime = nowTime;
+        lastTapPos = {x:tapX, y:tapY};
     }
 
     downPos = null;
@@ -3661,20 +3703,31 @@ d:[1,-1], arrowright:[1,-1]
 function toggleKnife(){
 if(RUN.knives<=0){toast('Ножей нет — купи в лагере');SND.deny();return;}
 G.knifeMode=!G.knifeMode;
+G.bombMode=false;
 if(G.knifeMode)G.flagMode=false;
 document.getElementById('btnKnife').classList.toggle('active',G.knifeMode);
 document.getElementById('btnFlag').classList.remove('active');
 if(G.knifeMode)toast('Режим ножа: клик по скрытой плите');
 }
+function toggleBomb(){
+  if(RUN.bombs<=0){toast('Бомб нет — купи в лагере');SND.deny();return;}
+  G.bombMode=!G.bombMode;
+  if(G.bombMode){G.flagMode=false;G.knifeMode=false;}
+  document.getElementById('btnBomb').classList.toggle('active',G.bombMode);
+  document.getElementById('btnKnife').classList.remove('active');
+  document.getElementById('btnFlag').classList.remove('active');
+  if(G.bombMode)toast('Режим бомбы: клик по стене');
+}
 function toggleFlagMode(){
 G.flagMode=!G.flagMode;
+G.bombMode=false;
 if(G.flagMode)G.knifeMode=false;
 document.getElementById('btnFlag').classList.toggle('active',G.flagMode);
 document.getElementById('btnKnife').classList.remove('active');
 }
 addEventListener('keydown',function(e){
 var k=e.key.toLowerCase();
-if(e.repeat&&(k===' '||k==='e'||k==='k'||k==='f'))return;
+if(e.repeat&&(k===' '||k==='e'||k==='k'||k==='f'||k==='v'))return;
 if(k==='arrowup'||k==='arrowdown'||k==='arrowleft'||k==='arrowright'||k===' ')e.preventDefault();
 SND.ensure();
 if(k==='m'){toggleSound();return;}
@@ -3685,6 +3738,7 @@ if(k==='escape'){toMenu();return;}
 if(paused)return;
 if(G.state!=='play')return;
 if(k==='k'){toggleKnife();return;}
+if(k==='v'){toggleBomb();return;}
 if(k==='f'){toggleFlagMode();return;}
 if(k==='['){rotateView(-1);return;}
 if(k===']'){rotateView(1);return;}
@@ -6067,6 +6121,9 @@ function hudSync(force){
 if(!RUN.active)return;
 if(force||RUN.hearts!==lastH||RUN.maxHearts!==lastMH||RUN.armor!==lastAr){
 lastH=RUN.hearts;lastMH=RUN.maxHearts;lastAr=RUN.armor;
+var bl=RUN.bombs+'';
+if(force||bl!==lastB){lastB=bl;$('btnBomb').textContent='✸ БОМБА: '+RUN.bombs;}
+$('btnBomb').classList.toggle('off',RUN.bombs===0&&!G.bombMode);
 var s='';
 for(var i=0;i<RUN.maxHearts;i++){s+='<span class="h '+(i<RUN.hearts?'on':'')+'">♥</span>';}
 if(RUN.armor)s+='<span class="armorico">🛡</span>';
@@ -6230,6 +6287,7 @@ function renderCamp(){
 $('campRes').innerHTML='<span class="coin"></span> '+RUN.gold+
 ' &nbsp;·&nbsp; ♥ '+RUN.hearts+'/'+RUN.maxHearts+
 ' &nbsp;·&nbsp; † '+RUN.knives+
+' &nbsp;·&nbsp; ✸ '+RUN.bombs+
 (RUN.armor?' &nbsp;·&nbsp; 🛡':'');
 var g=$('shopGrid');
 g.innerHTML='';
@@ -6305,10 +6363,12 @@ function showEnd(won){
 
   $('end').classList.remove('hidden');
   $('hud').classList.add('hidden');
-}function toMenu(){
+}
+function toMenu(){
 RUN.active=false;
 G.rot=0;
 G.knifeMode=false;G.flagMode=false;
+G.bombMode=false;
 newGame({size:14,mines:44},true);
 buildCards();
 $('hud').classList.add('hidden');
@@ -6350,6 +6410,7 @@ $('btnRotL').addEventListener('click',function(){rotateView(-1);});
 $('btnRotR').addEventListener('click',function(){rotateView(1);});
 $('btnFlag').addEventListener('click',function(){toggleFlagMode();});
 $('btnKnife').addEventListener('click',function(){toggleKnife();});
+$('btnBomb').addEventListener('click',function(){toggleBomb();});
 $('btnBestiary').addEventListener('click',toggleBestiary);
 $('btnBestiaryX').addEventListener('click',toggleBestiary);
 $('btnLeaders').addEventListener('click', toggleLeaders);
@@ -6536,6 +6597,7 @@ function startTestRun() {
     var testMaxHearts = parseInt($('testMaxHearts').value) || 3;
     var testHearts = parseInt($('testHearts').value) || testMaxHearts;
     var testKnives = parseInt($('testKnives').value) || 0;
+    var testbombs = parseInt($('testBombs').value) || 0;
     var testLanterns = parseInt($('testLanterns').value) || 0;
     var testMaps = parseInt($('testMaps').value) || 0;
     var testArmor = $('testArmor').checked;
@@ -6561,6 +6623,7 @@ function startTestRun() {
     RUN.maxHearts = clamp(testMaxHearts, 1, 10);
     RUN.hearts = clamp(testHearts, 1, RUN.maxHearts);
     RUN.knives = clamp(testKnives, 0, 10);
+    RUN.bombs = clamp(testbombs, 0, 5);
     RUN.lanternBuys = clamp(testLanterns, 0, 4);
     RUN.maps = clamp(testMaps, 0, 5);
     RUN.armor = testArmor;
