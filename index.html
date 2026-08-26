@@ -59,10 +59,44 @@ background:var(--panel);color:var(--text);border:1px solid var(--line);cursor:po
 font-family:'Press Start 2P',monospace;font-size:9px;line-height:1.7;color:#ffd9a0;text-align:center;
 background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 16px;transition:.3s;pointer-events:none;max-width:90vw}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#monsterNotify {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  z-index: 25;
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(10px, 3.0vw, 15px);
+  line-height: 1.8;
+  color: #ffd9a0;
+  text-shadow: 0 0 20px rgba(255,150,50,.6), 0 0 60px rgba(255,120,40,.3), 0 3px 0 #3a1f0c;
+  background: rgba(13,15,23,.92);
+  border: 1px solid rgba(255,180,90,.35);
+  border-radius: 10px;
+  padding: 24px 36px;
+  max-width: 90vw;
+  transition: opacity .4s, transform .4s;
+}
+#monsterNotify.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: auto;   /* ← добавь эту строку */
+  cursor: pointer;        /* ← и эту */
+}
+#monsterNotify .mn-sub {
+  display: block;
+  font-size: clamp(10px, 2vw, 10px);
+  color: var(--teal);
+  margin-top: 10px;
+  text-shadow: 0 0 12px rgba(77,208,196,.5);
+}
 #banner{position:fixed;top:36%;left:50%;transform:translateX(-50%);z-index:15;text-align:center;pointer-events:none;opacity:0;transition:opacity .6s;width:100%}
 #banner.show{opacity:1}
-#banner .b1{font-family:'Press Start 2P',monospace;font-size:clamp(18px,4vw,34px);color:#ffd9a0;text-shadow:0 0 24px rgba(255,150,50,.55),0 3px 0 #3a1f0c}
-#banner .b2{font-size:14px;color:var(--dim);margin-top:12px;font-style:italic}
+#banner .b1{font-family:'Press Start 2P',monospace;font-size:clamp(20px,4vw,34px);color:#ffd9a0;text-shadow:0 0 24px rgba(255,150,50,.55),0 3px 0 #3a1f0c}
+#banner .b2{font-size:20px;color:var(--dim);margin-top:12px;font-style:italic}
 #banner.boss .b1{
   font-size:clamp(22px,5vw,46px);
   letter-spacing:.14em;
@@ -596,6 +630,7 @@ h1{font-size:20px;margin-bottom:8px}
 </div>
 </div>
 <div id="toast"></div>
+<div id="monsterNotify"></div>
 <!-- Титульный экран -->
 <div id="title" class="screen">
 <div class="fog f1"></div><div class="fog f2"></div>
@@ -2007,15 +2042,18 @@ function newFloor(){
                 var newTypes = getNewMonsterTypes(f);
                 if(newTypes.length === 0) return;
                 if(newTypes.length === 1){
-                    var m = MONSTERS[newTypes[0]];
-                    toast('НОВЫЙ МОНСТР: '+m.icon+' '+m.name+' — «'+m.ability+'»');
-                } else {
-                    var names = newTypes.map(function(t){
-                        return MONSTERS[t].icon + ' ' + MONSTERS[t].name;
-                    }).join(', ');
-                    toast('НОВЫЕ МОНСТРЫ: ' + names);
-                }
-            },2500);
+                      var m = MONSTERS[newTypes[0]];
+                      notifyNewMonster(
+                          'НОВЫЙ МОНСТР: ' + m.icon + ' ' + m.name,
+                          '«' + m.ability + '» — ' + m.abilityDesc
+                      );
+                  } else {
+                      var names = newTypes.map(function(t){
+                          return MONSTERS[t].icon + ' ' + MONSTERS[t].name;
+                      }).join(', ');
+                      notifyNewMonster('НОВЫЕ МОНСТРЫ: ' + names, '');
+                  }
+            },1000);
         })(RUN.floor);
     }
 }
@@ -2099,7 +2137,7 @@ function placeMines(fc){
     var p=0,gm=RUN.diff&&RUN.diff.goldMul?RUN.diff.goldMul:1;
     if(p<safe.length){
         safe[p].item='chest';
-        safe[p].gv=Math.round((irand(40,80)+RUN.floor*15)*gm);
+        safe[p].gv=Math.round((irand(60,100)+RUN.floor*20)*gm);
         p++;
     }
     var nPot=1+(G.N>=14?1:0)+(RUN.floor>=4?1:0);
@@ -2338,7 +2376,7 @@ hudSync(true);
 }
 function monsterLoot(c){
 RUN.kills++;
-var g=irand(4,8)+Math.floor(RUN.floor/2)+(c.mtype===2?2:0);
+var g=irand(8,14)+Math.floor(RUN.floor/2)+(c.mtype===2?3:0);
 if(c.mtype===3) g = Math.floor(g * 1.8);
 RUN.gold+=g;RUN.goldEarned+=g;
 addText(isoX(c.x,c.y),isoY(c.x,c.y)+TH2-6,'+'+g,'#ffd76e');
@@ -3706,7 +3744,10 @@ cv.addEventListener('pointermove', function(e){
     var act = c && G.state === 'play' && (G.knifeMode ? !c.revealed : (G.flagMode ? !c.revealed : !c.flagged));
     cv.style.cursor = act ? (G.knifeMode ? 'crosshair' : 'pointer') : 'default';
 });
-
+$('monsterNotify').addEventListener('click', function() {
+  clearTimeout(monsterNotifyTimer);
+  this.classList.remove('show');
+});
 cv.addEventListener('pointerdown', function(e){
     SND.ensure();
     if(ROTANIM.active) return;
@@ -6292,6 +6333,14 @@ var el=$('toast');
 el.textContent=msg;el.classList.add('show');
 clearTimeout(toastTimer);
 toastTimer=setTimeout(function(){el.classList.remove('show');},2600);
+}
+var monsterNotifyTimer = null;
+function notifyNewMonster(mainText, subText) {
+  var el = $('monsterNotify');
+  el.innerHTML = mainText + (subText ? '<span class="mn-sub">' + subText + '</span>' : '');
+  el.classList.add('show');
+  clearTimeout(monsterNotifyTimer);
+  monsterNotifyTimer = setTimeout(function(){ el.classList.remove('show'); }, 5500);
 }
 function flashRed(){
 var f=$('flash');
