@@ -358,6 +358,203 @@ button,.card,.shopitem{touch-action:manipulation}
     border-color: var(--amber);
     box-shadow: 0 0 8px rgba(255,170,60,.2);
 }
+/* ============ МОБИЛЬНАЯ АДАПТАЦИЯ ============ */
+.hint-touch{display:none}
+button,.card,.shopitem{touch-action:manipulation}
+.screen{padding:14px;padding:calc(14px + env(safe-area-inset-top,0px)) calc(14px + env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) calc(14px + env(safe-area-inset-left,0px))}
+.title-inner,.panel-big,.bestiary-panel{margin:auto}
+#scoreName{font-size:16px}
+.modebtn:active,.btn:active,.mini:active,.card:active{transform:scale(.96)}
+#hud{padding:14px;padding:calc(10px + env(safe-area-inset-top,0px)) calc(10px + env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) calc(10px + env(safe-area-inset-left,0px))}
+
+/* устройства с тач-экраном */
+@media(pointer:coarse){
+.hint-desktop{display:none}
+.hint-touch{display:inline}
+.modebtn{padding:14px 16px;font-size:11px;min-width:104px}
+.btn{padding:14px 18px;min-height:48px}
+.mini{padding:10px 12px;min-height:44px}
+.card{min-height:120px}
+.shopitem{min-height:140px}
+.btn.buy{min-height:44px;padding:12px 16px}
+}
+
+/* маленькие экраны */
+@media(max-width:760px),(max-height:560px){
+.panel{padding:7px 9px;gap:8px}
+.hearts .h{font-size:16px}
+.armorico{font-size:13px}
+.stat{font-size:9px;gap:5px}
+.stat .ico{font-size:11px}
+.mini{font-size:8px;padding:9px 10px}
+#hint{font-size:10px;max-width:58vw;line-height:1.5}
+.modebtn{padding:12px 12px;font-size:9px;min-width:0}
+#toast{bottom:120px;font-size:8px;line-height:1.8}
+.lore{font-size:13px;margin:16px auto 20px}
+.controls-line{font-size:11px}
+.panel-big{padding:22px 16px}
+.bestiary-panel{padding:20px 12px}
+.bestiary-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.b-icon{font-size:34px;margin-bottom:8px}
+.shopgrid{grid-template-columns:repeat(auto-fit,minmax(122px,1fr))}
+.si-desc{min-height:44px}
+.endstats .row,.rulesrow{font-size:13px}
+#banner .b2{font-size:12px}
+}
+
+/* совсем узкие экраны */
+@media(max-width:420px){
+.stat{font-size:8px;gap:4px}
+.hearts .h{font-size:14px}
+.actions{width:100%;justify-content:center}
+.kicker{font-size:8px}
+}
+
+/* ========== ДОПОЛНИТЕЛЬНАЯ МОБИЛЬНАЯ АДАПТАЦИЯ МЕНЮ ========== */
+
+/* --- Титульный экран --- */
+@media(max-width:600px){
+.title-inner{padding:20px 12px}
+h1{font-size:clamp(20px,6vw,32px);line-height:1.6}
+.lore{font-size:12px;line-height:1.55;margin:14px auto 18px}
+.cards{grid-template-columns:1fr;gap:10px;max-width:320px}
+.card{padding:14px 10px}
+.card .ci{font-size:8px;line-height:1.9}
+.controls-line{font-size:10px;line-height:1.7}
+.btnrow{gap:8px}
+.btn{font-size:9px;padding:12px 14px}
+}
+
+/* --- Тестовое меню --- */
+@media(max-width:600px){
+#testMenu .panel-big{padding:16px 12px}
+#testMenu h2{font-size:14px!important}
+#testMenu .sub{font-size:12px;margin-bottom:10px}
+#testMenu > .panel-big > div[style*="grid"]{
+display:grid!important;
+grid-template-columns:1fr!important;
+gap:8px!important;
+margin-bottom:14px!important;
+}
+#testMenu label{font-size:11px;color:var(--dim);line-height:1.4}
+.test-input{font-size:14px;padding:10px 8px;min-height:44px}
+#testMenu select.test-input{min-height:44px}
+#testMenu input[type="checkbox"]{width:22px!important;height:22px!important}
+#testMenu label[style*="display:flex"]{margin-top:8px!important}
+#testMenu .btnrow{flex-direction:column}
+#testMenu .btn{width:100%;text-align:center}
+}
+
+/* --- Лагерь / магазин --- */
+@media(max-width:600px){
+.camppanel{padding:18px 12px!important}
+.camppanel h2{font-size:16px!important}
+.campbonus{font-size:9px}
+.campres{font-size:9px;flex-wrap:wrap;gap:6px}
+.shopgrid{grid-template-columns:repeat(2,1fr);gap:8px}
+.shopitem{padding:10px 8px;min-height:130px}
+.si-ico{font-size:20px}
+.si-name{font-size:8px;line-height:1.5}
+.si-desc{font-size:10px;min-height:36px;line-height:1.3}
+.btn.buy{font-size:8px;padding:10px 10px;width:100%;justify-content:center}
+#btnDescend{width:100%;text-align:center;padding:16px}
+}
+
+/* --- Финал забега --- */
+@media(max-width:600px){
+#end .panel-big{padding:20px 14px}
+#endTitle{font-size:clamp(14px,4vw,20px)!important;line-height:1.5!important}
+#endSub{font-size:12px}
+.endstats{max-width:100%}
+.endstats .row{font-size:12px;padding:6px 2px}
+.endstats .row b{font-size:10px}
+.record{font-size:9px}
+.score-submit{flex-direction:column;gap:8px}
+#scoreName{width:100%;padding:14px 12px;font-size:16px;text-align:center}
+#btnSubmitScore{width:100%;text-align:center;padding:14px}
+.score-msg{font-size:11px}
+#end .btnrow{flex-direction:column}
+#end .btn{width:100%;text-align:center;padding:14px}
+}
+
+/* --- Помощь --- */
+@media(max-width:600px){
+#help .panel-big{padding:18px 14px;max-height:85vh;overflow-y:auto}
+#help h2{font-size:clamp(14px,4vw,20px)}
+.rules{font-size:12px;line-height:1.6}
+.rules li{margin-bottom:10px;padding-left:18px}
+.rules li::before{font-size:8px;top:3px}
+.rules .k{font-size:8px;padding:2px 4px}
+#btnHelpClose{width:100%;text-align:center;padding:16px}
+}
+
+/* --- Бестиарий --- */
+@media(max-width:600px){
+.bestiary-panel{padding:16px 10px;max-height:90vh}
+.bestiary-panel h2{font-size:clamp(13px,3.5vw,18px);margin-bottom:14px}
+.bestiary-progress{font-size:9px;margin-bottom:12px}
+.bestiary-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.bestiary-card{padding:14px 10px;min-height:220px}
+.b-icon{font-size:30px;margin-bottom:8px}
+.b-icon.locked{font-size:26px}
+.b-name{font-size:9px;margin-bottom:6px}
+.b-desc{font-size:10px;line-height:1.4;min-height:36px}
+.b-ability{font-size:9px;line-height:1.4;padding:6px;min-height:40px}
+.b-stats{font-size:8px}
+}
+
+/* --- Таблица счёта --- */
+@media(max-width:600px){
+#leaders .bestiary-panel{padding:16px 12px}
+#leaders h2{font-size:clamp(14px,4vw,20px)}
+.leader-row{font-size:12px;padding:7px 2px;flex-wrap:wrap}
+.leader-row b{font-size:10px}
+.leader-meta{font-size:10px;line-height:1.5;margin-bottom:8px}
+}
+
+/* --- Кнопка закрытия (крестик) --- */
+@media(max-width:600px){
+.close-x{width:40px;height:40px;font-size:14px;margin:-4px -2px 8px 8px}
+}
+
+/* --- Баннер --- */
+@media(max-width:600px){
+#banner{top:30%}
+#banner .b1{font-size:clamp(16px,5vw,28px)}
+#banner .b2{font-size:11px;margin-top:8px}
+#banner.boss .b1{font-size:clamp(18px,5vw,32px)}
+#banner.victory .b1{font-size:clamp(22px,6vw,40px)}
+#banner.victory .b2{font-size:13px}
+#banner.victory .b3{font-size:10px}
+}
+
+/* --- Тост --- */
+@media(max-width:600px){
+#toast{bottom:100px;font-size:8px;max-width:85vw;padding:8px 12px}
+}
+
+/* --- Экраны: скролл и безопасные зоны --- */
+@media(max-height:700px){
+.screen{align-items:flex-start;padding-top:calc(20px + env(safe-area-inset-top,0px))}
+.title-inner{padding-top:16px}
+.panel-big{margin-top:10px}
+}
+
+/* --- Ландшафт на телефоне --- */
+@media(max-height:420px) and (orientation:landscape){
+.screen{align-items:flex-start;overflow-y:auto}
+.title-inner{padding:12px 16px}
+h1{font-size:20px;margin-bottom:8px}
+.lore{font-size:11px;margin:8px auto 12px}
+.cards{grid-template-columns:repeat(3,1fr);gap:8px}
+.panel-big{padding:14px 16px}
+#hud{padding:6px}
+.hud-top{flex-wrap:nowrap;overflow-x:auto}
+.panel{white-space:nowrap}
+#hint{display:none}
+.modebtns{position:fixed;bottom:8px;right:8px}
+.modebtn{padding:10px 12px;font-size:8px}
+}
 </style>
 </head>
 <body>
@@ -389,8 +586,7 @@ button,.card,.shopitem{touch-action:manipulation}
 </div>
 </div>
 <div class="hud-bottom">
-<div id="hint"><span class="hint-desktop">ЛКМ — шаг · ПКМ — знамя · K — нож · F — режим знамени </span><span class="hint-touch">Тап — шаг и разведка · Долгий тап — знамя · ⚑ / † — режимы внизу</span></div>
-<div class="modebtns">
+<span class="hint-touch">Тап — шаг · Двойной тап — знамя · Перетаскивание — камера · Пинч — зум и поворот</span><div class="modebtns">
 <button id="btnFlag" class="modebtn">⚑ ЗНАМЯ</button>
 <button id="btnKnife" class="modebtn">† НОЖИ: 0</button>
 </div>
@@ -410,8 +606,7 @@ button,.card,.shopitem{touch-action:manipulation}
 Зачистил уровень — спускайся глубже. В <b>лагере</b> между ярусами торговец продаст улучшения.
 Пятнадцать ярусов до сердца горы. Дойдёшь ли ты до конца?</p>
 <div class="cards" id="cards"></div>
-<div class="controls-line"><span class="hint-desktop"><b>ЛКМ / тап</b> — шаг и разведка · <b>ПКМ / долгий тап</b> — знамя · <b>K</b> — метнуть нож · <b>WASD</b> — ходьба</span><span class="hint-touch"><b>Тап</b> — шаг и разведка · <b>Долгий тап</b> — знамя · Кнопки <b>⚑ ЗНАМЯ</b> и <b>† НОЖИ</b> внизу — режимы</span></div>
-<div class="btnrow" style="margin-top:20px">
+<span class="hint-touch">Тап — шаг · Двойной тап — знамя · Перетаскивание — камера · Пинч — зум и поворот</span><div class="btnrow" style="margin-top:20px">
     <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
 <!--     <button class="btn" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button> -->
 </div>
@@ -3255,6 +3450,17 @@ function screenToCell(px,py){
   return G.grid[idx(best.x, best.y)];
 }
 var lpTimer=null,lpDone=false,downPos=null;
+// === НОВОЕ: переменные для тач-управления ===
+var isDragging = false;
+var dragStart = {x:0, y:0};
+var camStart = {x:0, y:0};
+var DRAG_THRESHOLD = 12; // пикселей, после которых считаем жест "перетаскивание"
+
+// Двойной тап
+var lastTapTime = 0;
+var lastTapPos = {x:0, y:0};
+var DOUBLE_TAP_DELAY = 320; // мс
+var DOUBLE_TAP_DIST = 25;   // пикселей
 
 // ---------- поддержка пинч-зума и вращения ----------
 var activeTouches = new Map();
@@ -3262,176 +3468,174 @@ var pinchState = { active:false, startDist:0, startZoom:1, startAngle:0, startRo
 
 cv.addEventListener('contextmenu',function(e){e.preventDefault();});
 
-cv.addEventListener('pointermove',function(e){
-  // Тач: обработка пинч-зума и вращения
-  if(e.pointerType === 'touch'){
-    if(activeTouches.has(e.pointerId)){
-      activeTouches.set(e.pointerId, {x:e.clientX, y:e.clientY});
-    }
-
-    if(pinchState.active && activeTouches.size >= 2){
-      var pts = [];
-      activeTouches.forEach(function(p){ pts.push(p); });
-
-      if(pts.length >= 2){
-        var d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-        var angle = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
-        var angleDiff = angle - pinchState.startAngle;
-
-        // Зум
-        if(pinchState.startDist > 0){
-          var nz = clamp(pinchState.startZoom * d / pinchState.startDist, .35, 2.2);
-          G.cam.zoom = nz;
-          G.cam.tzoom = nz;
+cv.addEventListener('pointermove', function(e){
+    // === ТАЧ ===
+    if(e.pointerType === 'touch'){
+        if(activeTouches.has(e.pointerId)){
+            activeTouches.set(e.pointerId, {x:e.clientX, y:e.clientY});
         }
 
-        // Вращение (каждые 45 градусов = поворот на 1)
-        var rotSteps = Math.round(angleDiff / (Math.PI / 4));
-        var newRot = (pinchState.startRot + rotSteps + 4) % 4;
-        if(newRot !== G.rot && !ROTANIM.active){
-          rotateView(newRot - G.rot);
+        // Два пальца: пинч-зум + вращение
+        if(pinchState.active && activeTouches.size >= 2){
+            var pts = [];
+            activeTouches.forEach(function(p){ pts.push(p); });
+            if(pts.length >= 2){
+                var d = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+                var angle = Math.atan2(pts[1].y-pts[0].y, pts[1].x-pts[0].x);
+                var angleDiff = angle - pinchState.startAngle;
+
+                // Зум
+                if(pinchState.startDist > 0){
+                    var nz = clamp(pinchState.startZoom * d / pinchState.startDist, .35, 2.2);
+                    G.cam.zoom = nz;
+                    G.cam.tzoom = nz;
+                }
+                // Вращение каждые 45°
+                var rotSteps = Math.round(angleDiff / (Math.PI/4));
+                var newRot = (pinchState.startRot + rotSteps + 4) % 4;
+                if(newRot !== G.rot && !ROTANIM.active){
+                    rotateView(newRot - G.rot);
+                }
+            }
+            return;
         }
-      }
-      return;
+
+        // Один палец: перетаскивание карты ИЛИ отмена тапа
+        if(downPos && activeTouches.size === 1){
+            var dx = e.clientX - dragStart.x;
+            var dy = e.clientY - dragStart.y;
+            var dist = Math.hypot(dx, dy);
+
+            if(dist > DRAG_THRESHOLD){
+                isDragging = true;
+                if(lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
+                // Двигаем камеру
+                G.cam.x = camStart.x - dx / G.cam.zoom;
+                G.cam.y = camStart.y - dy / G.cam.zoom;
+            }
+        }
+        return;
     }
 
-    // Одиночный тач: если палец сильно двинулся — отменяем долгий тап
-    if(lpTimer && downPos && Math.hypot(e.clientX-downPos.x,e.clientY-downPos.y)>14){
-      clearTimeout(lpTimer);
-      lpTimer = null;
+    // === МЫШЬ ===
+    if(lpTimer && downPos && Math.hypot(e.clientX-downPos.x, e.clientY-downPos.y) > 14){
+        clearTimeout(lpTimer); lpTimer = null;
     }
-    return;
-  }
-
-  // Мышь: старая логика
-  if(lpTimer && downPos && Math.hypot(e.clientX-downPos.x,e.clientY-downPos.y)>14){
-    clearTimeout(lpTimer);
-    lpTimer = null;
-  }
-
-  if(ROTANIM.active){
-    G.hover = null;
-    G.hoverPath = null;
-    return;
-  }
-
-  if(e.pointerType !== 'mouse') return;
-
-  G.hover=screenToCell(e.clientX,e.clientY);
-  computeHoverPath();
-
-  var c=G.hover;
-  var act=c&&G.state==='play'&&(G.knifeMode?!c.revealed:(G.flagMode?!c.revealed:!c.flagged));
-  cv.style.cursor=act?(G.knifeMode?'crosshair':'pointer'):'default';
+    if(ROTANIM.active){ G.hover=null; G.hoverPath=null; return; }
+    if(e.pointerType !== 'mouse') return;
+    G.hover = screenToCell(e.clientX, e.clientY);
+    computeHoverPath();
+    var c = G.hover;
+    var act = c && G.state==='play' && (G.knifeMode ? !c.revealed : (G.flagMode ? !c.revealed : !c.flagged));
+    cv.style.cursor = act ? (G.knifeMode ? 'crosshair' : 'pointer') : 'default';
 });
 
-cv.addEventListener('pointerdown',function(e){
-  SND.ensure();
+cv.addEventListener('pointerdown', function(e){
+    SND.ensure();
+    if(ROTANIM.active) return;
 
-  if(ROTANIM.active) return;
-
-  // Тач: если два пальца — начинаем пинч-зум/вращение
-  if(e.pointerType === 'touch'){
-    activeTouches.set(e.pointerId, {x:e.clientX, y:e.clientY});
-
-    if(activeTouches.size === 2){
-      if(lpTimer){
-        clearTimeout(lpTimer);
-        lpTimer = null;
-      }
-
-      downPos = null;
-      lpDone = false;
-
-      var pts = [];
-      activeTouches.forEach(function(p){ pts.push(p); });
-
-      pinchState.active = true;
-      pinchState.startDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-      pinchState.startZoom = G.cam.tzoom;
-      pinchState.startAngle = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
-      pinchState.startRot = G.rot;
-
-      return;
+    // Тач: два пальца → пинч/вращение
+    if(e.pointerType === 'touch'){
+        activeTouches.set(e.pointerId, {x:e.clientX, y:e.clientY});
+        if(activeTouches.size === 2){
+            if(lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
+            downPos = null;
+            lpDone = false;
+            isDragging = false;
+            var pts = [];
+            activeTouches.forEach(function(p){ pts.push(p); });
+            pinchState.active = true;
+            pinchState.startDist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+            pinchState.startZoom = G.cam.tzoom;
+            pinchState.startAngle = Math.atan2(pts[1].y-pts[0].y, pts[1].x-pts[0].x);
+            pinchState.startRot = G.rot;
+            return;
+        }
     }
-  }
 
-  if(e.button===2){
-    toggleFlag(screenToCell(e.clientX,e.clientY));
-    return;
-  }
+    if(e.button === 2){ toggleFlag(screenToCell(e.clientX, e.clientY)); return; }
+    if(e.button !== 0) return;
 
-  if(e.button!==0)return;
+    downPos = {x:e.clientX, y:e.clientY};
+    lpDone = false;
+    isDragging = false;
+    dragStart = {x:e.clientX, y:e.clientY};
+    camStart = {x:G.cam.x, y:G.cam.y};
 
-  downPos={x:e.clientX,y:e.clientY};
-  lpDone=false;
-
-  if(e.pointerType==='touch'){
-    lpTimer=setTimeout(function(){
-      lpDone=true;
-      toggleFlag(screenToCell(downPos.x,downPos.y));
-      if(navigator.vibrate)navigator.vibrate(30);
-    },380);
-  }else{
-    actCell(screenToCell(e.clientX,e.clientY));
-  }
+    if(e.pointerType === 'touch'){
+        lpTimer = setTimeout(function(){
+            if(!isDragging){
+                lpDone = true;
+                toggleFlag(screenToCell(downPos.x, downPos.y));
+                if(navigator.vibrate) navigator.vibrate(30);
+            }
+        }, 380);
+    } else {
+        actCell(screenToCell(e.clientX, e.clientY));
+    }
 });
 
-cv.addEventListener('pointerup',function(e){
-  var wasPinch = false;
+cv.addEventListener('pointerup', function(e){
+    var wasPinch = false;
 
-  if(e.pointerType === 'touch'){
-    wasPinch = pinchState.active;
-    activeTouches.delete(e.pointerId);
+    if(e.pointerType === 'touch'){
+        wasPinch = pinchState.active;
+        activeTouches.delete(e.pointerId);
+        if(activeTouches.size < 2) pinchState.active = false;
 
-    if(activeTouches.size < 2){
-      pinchState.active = false;
+        if(wasPinch || activeTouches.size > 0){
+            if(lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
+            downPos = null;
+            isDragging = false;
+            return;
+        }
     }
 
-    // Если был пинч или остался ещё один палец — не обрабатываем одиночный тап
-    if(wasPinch || activeTouches.size > 0){
-      if(lpTimer){
-        clearTimeout(lpTimer);
-        lpTimer = null;
-      }
-      downPos = null;
-      return;
+    if(lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
+    if(ROTANIM.active){ downPos=null; isDragging=false; return; }
+
+    // Если было перетаскивание — не обрабатываем как тап
+    if(isDragging){
+        downPos = null;
+        isDragging = false;
+        return;
     }
-  }
 
-  if(lpTimer){
-    clearTimeout(lpTimer);
-    lpTimer = null;
-  }
+    if(e.pointerType === 'touch' && !lpDone && downPos){
+        var tapX = downPos.x, tapY = downPos.y;
+        var now = performance.now();
 
-  if(ROTANIM.active){
+        // === ДВОЙНОЙ ТАП → ФЛАГ ===
+        var timeDiff = now - lastTapTime;
+        var posDiff = Math.hypot(tapX - lastTapPos.x, tapY - lastTapPos.y);
+
+        if(timeDiff < DOUBLE_TAP_DELAY && posDiff < DOUBLE_TAP_DIST){
+            // Двойной тап — ставим/снимаем флаг
+            toggleFlag(screenToCell(tapX, tapY));
+            if(navigator.vibrate) navigator.vibrate(20);
+            lastTapTime = 0; // сброс, чтобы тройной тап не сработал
+        } else {
+            // Одиночный тап — обычное действие
+            actCell(screenToCell(tapX, tapY));
+            lastTapTime = now;
+            lastTapPos = {x:tapX, y:tapY};
+        }
+    }
+
     downPos = null;
-    return;
-  }
-
-  if(e.pointerType === 'touch' && !lpDone && downPos){
-    actCell(screenToCell(downPos.x, downPos.y));
-  }
-
-  downPos = null;
+    isDragging = false;
 });
 
-cv.addEventListener('pointercancel',function(e){
-  if(e.pointerType === 'touch'){
-    activeTouches.delete(e.pointerId);
-
-    if(activeTouches.size < 2){
-      pinchState.active = false;
+cv.addEventListener('pointercancel', function(e){
+    if(e.pointerType === 'touch'){
+        activeTouches.delete(e.pointerId);
+        if(activeTouches.size < 2) pinchState.active = false;
     }
-  }
-
-  if(lpTimer){
-    clearTimeout(lpTimer);
-    lpTimer = null;
-  }
-
-  downPos = null;
+    if(lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
+    downPos = null;
+    isDragging = false;
 });
+
 function isUiOverlayOpen(){
 return !document.getElementById('title').classList.contains('hidden')
 || !document.getElementById('bestiary').classList.contains('hidden')
