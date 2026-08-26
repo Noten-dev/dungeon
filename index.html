@@ -78,6 +78,58 @@ background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1
   60%{ transform:scale(.96); opacity:1; filter:blur(0); }
   100%{ transform:scale(1); opacity:1; }
 }
+#banner.boss.theme-final .b1{
+    color: #ffd700;
+    text-shadow: 0 0 28px rgba(255,215,0,.95), 0 0 70px rgba(200,120,255,.6), 0 4px 0 #2a0a3e;
+    animation: bossIn .9s cubic-bezier(.2,1.4,.4,1) both, victoryShine 3s ease-in-out infinite;
+    background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700, #c080ff, #ffd700);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 25px rgba(255,215,0,0.8));
+}
+#banner.boss.theme-final .b2{ color: #e0c0ff; }
+#banner.victory .b1{
+    font-size: clamp(26px, 6vw, 58px);
+    letter-spacing: .18em;
+    animation: victoryIn 1.2s cubic-bezier(.2,1.4,.4,1) both, victoryShine 3s ease-in-out infinite;
+    background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700, #ff8c00, #ffd700);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(255,215,0,0.9)) drop-shadow(0 0 60px rgba(255,140,0,0.6));
+}
+
+#banner.victory .b2{
+    font-size: 16px;
+    letter-spacing: .25em;
+    text-transform: uppercase;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255,215,0,0.8), 0 0 40px rgba(255,140,0,0.4);
+    margin-top: 18px;
+}
+
+#banner.victory .b3{
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: #fff;
+    margin-top: 22px;
+    letter-spacing: .1em;
+    text-shadow: 0 0 15px rgba(255,215,0,0.9);
+}
+
+@keyframes victoryIn{
+    0%{ transform: scale(3) rotate(-8deg); opacity: 0; filter: blur(20px); }
+    50%{ transform: scale(.95) rotate(2deg); opacity: 1; filter: blur(0); }
+    100%{ transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes victoryShine{
+    0%, 100%{ background-position: 0% 50%; }
+    50%{ background-position: 100% 50%; }
+}
 /* ---------- screens ---------- */
 .screen{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;overflow:auto;transition:opacity .5s;
 background:radial-gradient(ellipse at 50% 20%, rgba(28,20,12,.55), rgba(4,5,10,.88) 70%)}
@@ -350,7 +402,7 @@ button,.card,.shopitem{touch-action:manipulation}
 <div class="fog f1"></div><div class="fog f2"></div>
 <div class="embers" id="embers"></div>
 <div class="title-inner">
-<div class="kicker">РОГАЛИК-САПЁР · 15 ЯРУСОВ ВНИЗ</div>
+<div class="kicker">РОГАЛИК-САПЁР</div>
 <h1>ТУМАННЫЕ<br>ГЛУБИНЫ</h1>
 <p class="lore">Ярус за ярусом вниз — золото древних королей и монстры, что его охраняют.
 Твой <b>амулет</b> чует чудовищ: цифра на плите показывает, сколько из них затаилось вокруг.
@@ -361,7 +413,7 @@ button,.card,.shopitem{touch-action:manipulation}
 <div class="controls-line"><span class="hint-desktop"><b>ЛКМ / тап</b> — шаг и разведка · <b>ПКМ / долгий тап</b> — знамя · <b>K</b> — метнуть нож · <b>WASD</b> — ходьба</span><span class="hint-touch"><b>Тап</b> — шаг и разведка · <b>Долгий тап</b> — знамя · Кнопки <b>⚑ ЗНАМЯ</b> и <b>† НОЖИ</b> внизу — режимы</span></div>
 <div class="btnrow" style="margin-top:20px">
     <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
-    <!-- <button class="btn" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button> -->
+<!--     <button class="btn" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button> -->
 </div>
 </div>
 </div>
@@ -371,7 +423,7 @@ button,.card,.shopitem{touch-action:manipulation}
         <h2 style="color:var(--amber); font-size: 18px;">🛠 ТЕСТОВЫЙ РЕЖИМ</h2>
         <p class="sub">Настройте параметры для быстрого теста</p>
         <div style="text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; font-size: 12px; color: var(--text);">
-            <label>Ярус (1-15):<br><input type="number" id="testFloor" value="1" min="1" max="15" class="test-input"></label>
+            <label>Ярус (1-20):<br><input type="number" id="testFloor" value="1" min="1" max="20" class="test-input"></label>
             <label>Золото:<br><input type="number" id="testGold" value="0" min="0" max="9999" class="test-input"></label>
             <label>Здоровье (текущее):<br><input type="number" id="testHearts" value="3" min="1" max="10" class="test-input"></label>
             <label>Макс. HP:<br><input type="number" id="testMaxHearts" value="3" min="1" max="10" class="test-input"></label>
@@ -618,7 +670,6 @@ weakness: 'Ставить новые знамёна рядом можно — н
     ability: 'РЕЗОНАНС',
     abilityDesc: 'Пока жив, все цифры на открытых клетках в радиусе 3 показывают на 1 БОЛЬШЕ реального значения.',
     weakness: 'Убей его ножом издалека, чтобы восстановить правду.',
-    danger: 'Коварная'
 },
 15: {
     id: 'prismatic_crystal',
@@ -628,7 +679,6 @@ weakness: 'Ставить новые знамёна рядом можно — н
     ability: 'ПРЕЛОМЛЕНИЕ',
     abilityDesc: 'Цифры в радиусе 2 показывают монстров только по 4 сторонам света (без диагоналей).',
     weakness: 'Искажение исчезает сразу после смерти. Ищите по заниженным цифрам.',
-    danger: 'Коварная'
 },
 16: {
     id: 'stone_gorgon',
@@ -638,7 +688,6 @@ weakness: 'Ставить новые знамёна рядом можно — н
     ability: 'ОКАМЕНЕНИЕ',
     abilityDesc: 'При гибели превращает 2 случайные открытые безопасные клетки в непроходимые каменные колонны.',
     weakness: 'Убивайте, когда разведан большой участок и есть обходные пути.',
-    danger: 'Высокая'
 },
 17: {
     id: 'cave_weaver',
@@ -648,7 +697,15 @@ weakness: 'Ставить новые знамёна рядом можно — н
     ability: 'ПАУТИНА',
     abilityDesc: 'Клетки в радиусе 2 покрыты паутиной — на них нельзя использовать Аккорд.',
     weakness: 'Паутина не защищает от ножа и не скрывает цифры.',
-    danger: 'Средняя'
+},
+18: {
+    id: 'mountain_keeper',
+    name: 'Хранитель Сердца Горы',
+    icon: '👁️‍🗨️',
+    desc: 'Древнее существо, стерегущее сердце горы с начала времён. Его пробуждение знаменует конец всего.',
+    ability: 'ВЛАСТЬ ГОРЫ',
+    abilityDesc: '3 жизни. При атаке телепортируется. Каждые 15 секунд копирует случайную способность.',
+    weakness: 'Нужно атаковать трижды. Готовь ножи!',
 }
 };
 // ---------- утилиты ----------
@@ -1031,6 +1088,9 @@ var ROTANIM = {
   dir: 0
 };
 var wormT=0; // таймер перемещения подземных червей
+var bossAbilityTimer = 0;           // таймер смены способности
+var currentBossAbility = null;      // текущая способность Хранителя
+var BOSS_ABILITY_DURATION = 15;     // секунд на одну способность
 var lastH=-1,lastMH=-1,lastAr=false,lastM=-999,lastG=-1,lastT='',lastF=-1,lastK='',lastScore=-1;
 var scoreSubmitted=false;
 var currentEndScore=0;var revealQueue=[],parts=[],texts=[],bats=[],nextBat=4000;
@@ -1411,35 +1471,54 @@ sporeHidden:false,
 obstacle:false
 };
 }
-// Каждый ярус добавляет в пул один новый вид тварей (шансы равны).
-// Редкие виды (экс-боссы 6–9) — не больше одного на ярус, червей — не больше двух.
-function pickMType(counts){
-    // Базовый пул: ярус 1–14 → типы 0–13
-    if(G.bossType >= 0){
-      counts[G.bossType] = (counts[G.bossType]||0) + 1;
-      return G.bossType;
+// Генерирует случайный порядок разблокировки монстров на весь забег.
+// Ярус 1: всегда слизень (тип 0). Ярус 2: слизень + скелет (типы 0-1).
+// Ярусы 3-15: новые типы добавляются в случайном порядке.
+function generateMonsterPool(){
+    var remaining = [];
+    for(var i = 2; i <= 17; i++) remaining.push(i);
+    shuffle(remaining);
+    var poolSizes = [0,1,2,3,4,5,6,7,9,10,12,13,15,16,17,18,18,18,18,18,18];
+    G.floorPools = [];
+    for(var f = 1; f <= 20; f++){
+        var pool = [0];
+        if(f >= 2) pool.push(1);
+        var need = poolSizes[f] - pool.length;
+        for(var j = 0; j < need && j < remaining.length; j++){
+            pool.push(remaining[j]); // всегда с начала → накопительно
+        }
+        G.floorPools[f] = pool;
     }
-    var poolMax = Math.min(RUN.floor, 14);
-    // Новые монстры добавляются с определённых ярусов
-    if(RUN.floor >= 8)  poolMax = Math.max(poolMax, 15); // Кристалл-резонатор
-    if(RUN.floor >= 10) poolMax = Math.max(poolMax, 16); // Призматический Кристалл
-    if(RUN.floor >= 12) poolMax = Math.max(poolMax, 17); // Каменная Горгона
-    if(RUN.floor >= 13) poolMax = Math.max(poolMax, 18); // Пещерный Ткач
+}
 
-    var t = irand(0, poolMax - 1);
+// Какие типы новенькие на данном ярусе (для тоста)
+function getNewMonsterTypes(floor){
+    if(!G.floorPools || !G.floorPools[floor]) return [];
+    var prev = (floor > 1 && G.floorPools[floor - 1]) ? G.floorPools[floor - 1] : [];
+    return G.floorPools[floor].filter(function(t){
+        return prev.indexOf(t) === -1;
+    });
+}
+// Каждый ярус добавляет в пул один новый вид тварей (шансы равны).
+function pickMType(counts){
+    // Босс размещается отдельно в placeMines().
+    // Здесь выбираются только обычные монстры из пула яруса.
+    var pool = (G.floorPools && G.floorPools[RUN.floor]) ? G.floorPools[RUN.floor] : [0];
 
-    // Лимиты
-    if(t >= 6 && t <= 9 && (counts[t]||0) >= 5) t = irand(0, 6);
-    if(t === 10 && (counts[10]||0) >= 5) t = irand(0, 9);
-    if(t === 13 && (counts[13]||0) >= 3) t = irand(0, 12);
-    if(t === 5  && (counts[5]||0)  >= 3) t = irand(0, 4);
-    // Новые лимиты
-    if(t === 14 && (counts[14]||0) >= 2) t = irand(0, 13);
-    if(t === 15 && (counts[15]||0) >= 2) t = irand(0, 13);
-    if(t === 16 && (counts[16]||0) >= 2) t = irand(0, 13);
-    if(t === 17 && (counts[17]||0) >= 3) t = irand(0, 13);
-
-    counts[t] = (counts[t]||0) + 1;
+    var available = pool.filter(function(t){
+        if(t >= 6 && t <= 9  && (counts[t]||0) >= 5) return false;
+        if(t === 10 && (counts[t]||0) >= 5) return false;
+        if(t === 13 && (counts[t]||0) >= 3) return false;
+        if(t === 5  && (counts[t]||0) >= 3) return false;
+        if(t === 14 && (counts[t]||0) >= 2) return false;
+        if(t === 15 && (counts[t]||0) >= 2) return false;
+        if(t === 16 && (counts[t]||0) >= 2) return false;
+        if(t === 17 && (counts[t]||0) >= 3) return false;
+        return true;
+    });
+    if(available.length === 0) available = pool;
+    var t = choice(available);
+    counts[t] = (counts[t] || 0) + 1;
     return t;
 }
 function newGame(d,demo){
@@ -1489,56 +1568,82 @@ else if(c2.obstacle){c2.revealed=true;c2.revealT=performance.now();}
 // ---------- ярусы и забег ----------
 function floorTag(f){return FLOOR_NAMES[Math.min(f,FLOOR_NAMES.length-1)];}
 function floorParams(){
-var f=RUN.floor,d=RUN.diff;
-var size=Math.min(9+Math.floor((f-1)*1.6),18);
-var dens=Math.min(d.density*(1+f*.02),.24);
-var mines=Math.round(size*size*dens);
-return {size:size,mines:mines};
+    var f=RUN.floor,d=RUN.diff;
+    var size = Math.min(9 + Math.floor((f-1)*1.6), 18);
+    if(f === 20) size = 20;
+
+    // Увеличенная плотность: множитель 0.03 вместо 0.02, кап 0.26 вместо 0.24
+    var dens = Math.min(d.density * (1 + f * 0.03), 0.26);
+
+    // На финальном уровне тоже больше монстров (было 0.08)
+    if(f === 20) dens = 0.12;
+
+    var mines = Math.round(size * size * dens);
+    return {size:size, mines:mines};
 }
 // ---------- БОСС-ЯРУСЫ ----------
 var BOSS_FLOORS = {
-  5:  { types:[4, 14],  theme:'bw',   title:'ПРОКЛЯТЫЙ СКЛЕП',    sub:'Обитель призраков и лживых кристаллов' },
-  10: { types:[10, 5],  theme:'acid', title:'ИСКРИВЛЁННАЯ БЕЗДНА', sub:'Черви точат камень, мимики — твой разум' },
-  15: { types:[9, 11],  theme:'hell', title:'ПРЕДДВЕРИЕ АДА',      sub:'Тени короны и хохот бесов' }
+    5:  { types:[4],  theme:'bw',   title:'ПРОКЛЯТЫЙ СКЛЕП',    sub:'Обитель призраков' },
+    10: { types:[10], theme:'acid', title:'ИСКРИВЛЁННАЯ БЕЗДНА', sub:'Черви точат камень' },
+    15: { types:[11], theme:'hell', title:'ПРЕДДВЕРИЕ АДА',      sub:'Хохот бесов' },
+    20: { types:[18], theme:'final', title:'СЕРДЦЕ ГОРЫ',        sub:'Финальная битва' }
 };
+
 function isBossFloor(f){ return !!BOSS_FLOORS[f]; }
+
 function newFloor(){
-var p=floorParams();
+    var p=floorParams();
+    G.rot = 0;
+    ROTANIM.active = false;
+    ROTANIM.t = 1;
+    newGame({size:p.size,mines:p.mines},false);
 
-// Сбрасываем поворот камеры на новом ярусе
-G.rot = 0;
-ROTANIM.active = false;
-ROTANIM.t = 1;
+    if(isBossFloor(RUN.floor)){
+        var bd = BOSS_FLOORS[RUN.floor];
+        G.bossType = choice(bd.types);
+        G.floorTheme = bd.theme;
+    }
 
-newGame({size:p.size,mines:p.mines},false);
-if(isBossFloor(RUN.floor)){
-  var bd = BOSS_FLOORS[RUN.floor];
-  G.bossType = choice(bd.types);   // случайно один из двух боссов
-  G.floorTheme = bd.theme;
-}
-G.lightBonus=RUN.lanternBuys*.6;
-wormT=0;
-var cs=Math.floor(G.N/2);
-placeMines(cellAt(cs,cs));
-if(RUN.maps>0){RUN.maps--;applyScout();}
-G.knifeMode=false;G.flagMode=false;
-document.getElementById('btnFlag').classList.remove('active');
-document.getElementById('btnKnife').classList.remove('active');
-hudSync(true);
-// Подсказка о новой твари на ярусе её дебюта
-if(!isBossFloor(RUN.floor)&&RUN.floor>=2&&RUN.floor<=17){
-(function(f){
-setTimeout(function(){
-var m=MONSTERS[f-1];
-if(m&&G.state==='play')toast('НОВЫЙ МОНСТР: '+m.icon+' '+m.name+' — «'+m.ability+'»');
-},2500);
-})(RUN.floor);
-}
-if(RUN.floor===17){
-setTimeout(function(){
-if(G.state==='play')toast('ЯРУС 15: все семнадцать монстров пробудились');
-},2500);
-}
+    G.lightBonus=RUN.lanternBuys*.6;
+    wormT=0;
+    var cs=Math.floor(G.N/2);
+    placeMines(cellAt(cs,cs));
+
+    if(RUN.maps>0){RUN.maps--;applyScout();}
+    G.knifeMode=false;G.flagMode=false;
+    document.getElementById('btnFlag').classList.remove('active');
+    document.getElementById('btnKnife').classList.remove('active');
+    hudSync(true);
+
+    // === НОВОЕ: инициализация таймера босса на 20 ярусе ===
+    if(RUN.floor === 20 && G.bossType === 18){
+        bossAbilityTimer = 0;
+        currentBossAbility = null;
+        // bossHP уже поставлен в placeMines()
+        setTimeout(function(){
+            if(G.state === 'play' && RUN.floor === 20) switchBossAbility();
+        }, 3000);
+    }
+
+    // Подсказка о новой твари
+    if(!isBossFloor(RUN.floor) && RUN.floor >= 2){
+        (function(f){
+            setTimeout(function(){
+                if(G.state !== 'play') return;
+                var newTypes = getNewMonsterTypes(f);
+                if(newTypes.length === 0) return;
+                if(newTypes.length === 1){
+                    var m = MONSTERS[newTypes[0]];
+                    toast('НОВЫЙ МОНСТР: '+m.icon+' '+m.name+' — «'+m.ability+'»');
+                } else {
+                    var names = newTypes.map(function(t){
+                        return MONSTERS[t].icon + ' ' + MONSTERS[t].name;
+                    }).join(', ');
+                    toast('НОВЫЕ МОНСТРЫ: ' + names);
+                }
+            },2500);
+        })(RUN.floor);
+    }
 }
 function applyScout(){
 var safe=G.grid.filter(function(c){return !c.mine&&!c.stair&&!c.revealed&&!c.obstacle;});
@@ -1567,6 +1672,9 @@ scoreSubmitted=false;
 lastScore=-1;
 currentEndScore=0;
 G.rot=0;
+bossAbilityTimer = 0;
+currentBossAbility = null;
+generateMonsterPool();
 newFloor();
 document.getElementById('title').classList.add('hidden');
 document.getElementById('end').classList.add('hidden');
@@ -1579,48 +1687,59 @@ announceFloor();
 }
 // ---------- генерация мин и предметов ----------
 function placeMines(fc){
-if(G.firstDone)return;
-var banned={};
-var ban=function(c){
-if(!c)return;
-for(var dy=-1;dy<=1;dy++){for(var dx=-1;dx<=1;dx++){
-var n=cellAt(c.x+dx,c.y+dy);if(n)banned[idx(n.x,n.y)]=true;
-}}
-};
-ban(fc);ban(cellAt(Math.floor(G.N/2),Math.floor(G.N/2)));
-var pool=shuffle(G.grid.filter(function(c){return !banned[idx(c.x,c.y)];}));
-var counts={};
-for(var i=0;i<G.mines&&i<pool.length;i++){
-pool[i].mine=true;
-pool[i].mtype=pickMType(counts);
-}
-for(var j=0;j<G.grid.length;j++){
-var c=G.grid[j];
-c.adj=neighbors8(c).filter(function(n){return n.mine;}).length;
-}
-var safe=shuffle(G.grid.filter(function(c){return !c.mine&&!c.stair;}));
-var p=0,gm=RUN.diff&&RUN.diff.goldMul?RUN.diff.goldMul:1;
-if(p<safe.length){
-safe[p].item='chest';
-safe[p].gv=Math.round((irand(40,80)+RUN.floor*15)*gm);
-p++;
-}
-var nPot=1+(G.N>=14?1:0)+(RUN.floor>=4?1:0);
-for(i=0;i<nPot&&p<safe.length;i++){safe[p].item='potion';p++;}
-// Препятствия (древние колонны/стенки)
-var obstacleCount=Math.floor(G.N*G.N*0.035)+(RUN.floor>=5?1:0);
-var placedObstacles=0;
-for(i=p;i<safe.length&&placedObstacles<obstacleCount;i++){
-if(Math.hypot(safe[i].x-Math.floor(G.N/2),safe[i].y-Math.floor(G.N/2))<2.5)continue;
-safe[i].obstacle=true;
-placedObstacles++;
-}
-G.firstDone=true;G.started=true;
-ensureConnectivity();
-for(var mi=0;mi<G.grid.length;mi++){
-if(G.grid[mi].mine)G.grid[mi].spawnT=performance.now()+600;
-}
-recalcAdjAlive();
+    if(G.firstDone)return;
+    var banned={};
+    var ban=function(c){
+        if(!c)return;
+        for(var dy=-1;dy<=1;dy++){for(var dx=-1;dx<=1;dx++){
+            var n=cellAt(c.x+dx,c.y+dy);if(n)banned[idx(n.x,n.y)]=true;
+        }}
+    };
+    ban(fc);ban(cellAt(Math.floor(G.N/2),Math.floor(G.N/2)));
+    var pool=shuffle(G.grid.filter(function(c){return !banned[idx(c.x,c.y)];}));
+    var counts={};
+
+    for(var i=0;i<G.mines&&i<pool.length;i++){
+        pool[i].mine=true;
+
+        // === ОДИН босс на босс-ярусе, остальные — обычные монстры ===
+        if(G.bossType >= 0 && i === 0){
+            pool[i].mtype = G.bossType;
+            if(G.bossType === 18) pool[i].bossHP = 3;
+        } else {
+            pool[i].mtype = pickMType(counts);
+        }
+    }
+
+    for(var j=0;j<G.grid.length;j++){
+        var c=G.grid[j];
+        c.adj=neighbors8(c).filter(function(n){return n.mine;}).length;
+    }
+
+    var safe=shuffle(G.grid.filter(function(c){return !c.mine&&!c.stair;}));
+    var p=0,gm=RUN.diff&&RUN.diff.goldMul?RUN.diff.goldMul:1;
+    if(p<safe.length){
+        safe[p].item='chest';
+        safe[p].gv=Math.round((irand(40,80)+RUN.floor*15)*gm);
+        p++;
+    }
+    var nPot=1+(G.N>=14?1:0)+(RUN.floor>=4?1:0);
+    for(i=0;i<nPot&&p<safe.length;i++){safe[p].item='potion';p++;}
+
+    var obstacleCount=Math.floor(G.N*G.N*0.035)+(RUN.floor>=5?1:0);
+    var placedObstacles=0;
+    for(i=p;i<safe.length&&placedObstacles<obstacleCount;i++){
+        if(Math.hypot(safe[i].x-Math.floor(G.N/2),safe[i].y-Math.floor(G.N/2))<2.5)continue;
+        safe[i].obstacle=true;
+        placedObstacles++;
+    }
+
+    G.firstDone=true;G.started=true;
+    ensureConnectivity();
+    for(var mi=0;mi<G.grid.length;mi++){
+        if(G.grid[mi].mine)G.grid[mi].spawnT=performance.now()+600;
+    }
+    recalcAdjAlive();
 }
 function ensureConnectivity(){
 var cs=Math.floor(G.N/2), start=cellAt(cs,cs);
@@ -1692,6 +1811,8 @@ function stoneCol(b, mul, jit) {
     r0=6;  g0=18; b0=12;  r1=85;  g1=215; b1=115;
   } else if (G.floorTheme === 'hell') { // адский багровый
     r0=24; g0=5;  b0=4;   r1=255; g1=85;  b1=25;
+  } else if (G.floorTheme === 'final') { // финальный — золото и пурпур
+    r0=20; g0=8;  b0=28;  r1=255; g1=200; b1=80;
   } else {
     var t = levelTone();
     r0 = lerp(16, 24, t);  g0 = lerp(19, 7, t);   b0 = lerp(24, 38, t);
@@ -1895,11 +2016,11 @@ for(var j=0;j<neighbors.length;j++){
 var nn = neighbors[j];
 if(nn.revealed){
 poof(isoX(nn.x,nn.y),isoY(nn.x,nn.y)+TH2);
-if(nn.mine && nn.mstate === 0){
-nn.mstate = 2;
-nn.mT = now;
-monsterLoot(nn);
-BESTIARY.unlock(nn.mtype);
+if(nn.mine && nn.mstate === 0 && nn.mtype !== 18){
+    nn.mstate = 2;
+    nn.mT = now;
+    monsterLoot(nn);
+    BESTIARY.unlock(nn.mtype);
 }
 }
 }
@@ -1908,7 +2029,7 @@ recalcAdjAlive();
 // Некромант: воскрешение при смерти
 function necromancerResurrect(c){
 if(c.mtype !== 6) return;
-var killed = G.grid.filter(function(g){return g.mine && g.mstate === 2 && g !== c;});
+var killed = G.grid.filter(function(g){return g.mine && g.mstate === 2 && g !== c && g.mtype !== 18;});
 var targets = G.grid.filter(function(g){
 return !g.mine && !g.revealed && !g.obstacle && !g.item && !g.stair && !g.flagged;
 });
@@ -1964,7 +2085,9 @@ var queued = {};
 for(var q=0;q<revealQueue.length;q++){queued[revealQueue[q].c.x+','+revealQueue[q].c.y]=true;}
 // Теперь подходят и закрытые, и открытые безопасные клетки (кроме клетки героя)
 var safeCells = G.grid.filter(function(g){ return !g.mine && !g.obstacle && !g.item && !g.stair && !g.flagged && !queued[g.x+','+g.y] && !heroProtected(g);});
-var minesLeft = G.grid.filter(function(g){return g.mine && g.mstate === 0;});
+var minesLeft = G.grid.filter(function(g){
+    return g.mine && g.mstate === 0 && g.mtype !== 18;
+});
 shuffle(safeCells);
 shuffle(minesLeft);
 var swaps = Math.min(5, safeCells.length, minesLeft.length);
@@ -1973,10 +2096,10 @@ var mineSrc = minesLeft[i];
 var safeDst = safeCells[i];
 // Если монстр встал на открытую плиту — она снова скрывается в тумане
 if(safeDst.revealed){
-safeDst.revealed = false;
-safeDst.revealT = -1e9;
-G.revealedSafe = Math.max(0, G.revealedSafe - 1);
-poof(isoX(safeDst.x,safeDst.y), isoY(safeDst.x,safeDst.y)+TH2);
+    safeDst.revealed = false;
+    safeDst.revealT = -1e9;
+    G.revealedSafe = Math.max(0, G.revealedSafe - 1);   // ← ВОТ ЭТА СТРОКА
+    poof(isoX(safeDst.x,safeDst.y), isoY(safeDst.x,safeDst.y)+TH2);
 }
 safeDst.mine = true;
 safeDst.mtype = mineSrc.mtype;
@@ -2014,6 +2137,274 @@ function gorgonPetrify(c){
     G.shake = 10;
     // Пересчитываем доступность (не обязательно, но желательно)
     ensureConnectivity();
+}
+// Хранитель: телепорт на случайную клетку при потере жизни
+function keeperTeleport(c, isLastLife){
+    if(c.mtype !== 18) return;
+
+    // Собираем очередь на открытие, чтобы не телепортироваться туда
+    var queued = {};
+    for(var q = 0; q < revealQueue.length; q++){
+        queued[revealQueue[q].c.x + ',' + revealQueue[q].c.y] = true;
+    }
+
+    // ТОЛЬКО закрытые, пустые, безопасные клетки
+    var candidates = G.grid.filter(function(g){
+        if(g === c) return false;
+        if(g.obstacle) return false;
+        if(g.mine) return false;           // не на другого монстра
+        if(g.revealed) return false;       // не на открытую клетку
+        if(g.item) return false;           // не на сундук/зелье
+        if(g.stair) return false;          // не на лестницу
+        if(g.flagged) return false;        // не на знамя
+        if(queued[g.x + ',' + g.y]) return false;
+        if(heroProtected(g)) return false;
+        return true;
+    });
+
+    if(candidates.length === 0) return;
+
+    var oldX = c.x, oldY = c.y;
+    var oldPx = isoX(oldX, oldY), oldPy = isoY(oldX, oldY) + TH2;
+
+    var target = choice(candidates);
+
+    // Переносим босса на закрытую клетку
+    target.mine = true;
+    target.mtype = c.mtype;
+    target.mstate = 0;
+    target.bossHP = c.bossHP;
+    target.spawnT = now;
+    target.revealed = false;       // гарантируем скрытие в тумане
+    target.revealT = -1e9;
+
+    // Старая клетка становится пустой и скрытой
+    c.mine = false;
+    c.mtype = 0;
+    c.bossHP = 0;
+    c.mstate = 0;
+    c.revealed = false;
+    c.revealT = -1e9;
+
+    var newPx = isoX(target.x, target.y), newPy = isoY(target.x, target.y) + TH2;
+
+    sparkle(oldPx, oldPy, '#ffd700');
+    sparkle(oldPx, oldPy, '#a064d2');
+    sparkle(newPx, newPy, '#ffd700');
+    sparkle(newPx, newPy, '#a064d2');
+
+    var hpLeft = target.bossHP || 0;
+    if(!isLastLife){
+        addText(oldPx, oldPy - 24, 'ТЕЛЕПОРТ! (' + hpLeft + ' ♥)', '#ffd700');
+        SND.shadowShift();
+    } else {
+        addText(oldPx, oldPy - 24, 'ПАЛ!', '#ffd700');
+    }
+
+    G.shake = 14;
+    recalcAdjAlive();
+}
+// Список способностей, которые копирует Хранитель
+var KEEPER_ABILITIES = [
+    { id:'fog',    name:'ТУМАН',       icon:'👁', color:'#aab3c4' },
+    { id:'swap',   name:'РАЗЛОМ',      icon:'👑', color:'#5a3a6e' },
+    { id:'stone',  name:'ОКАМЕНЕНИЕ',  icon:'🐍', color:'#aab3c4' },
+    { id:'raise',  name:'ВОСКРЕШЕНИЕ', icon:'🧙', color:'#a064d2' },
+    { id:'spawn',  name:'РОЙ СЛИЗНЕЙ', icon:'🟢', color:'#7fc25a' },
+    { id:'boom',   name:'ВЗРЫВ',       icon:'👹', color:'#ff6b3f' },
+    { id:'freeze', name:'МОРОЗ',       icon:'❄', color:'#7ec8e8' },
+    { id:'shift',  name:'СДВИГ ЗНАМЁН',icon:'😈', color:'#ff9ce0' }
+];
+
+function switchBossAbility(){
+    if(G.state !== 'play' || RUN.floor !== 20) return;
+    // Проверяем жив ли Хранитель
+    var keeper = G.grid.find(function(g){
+        return g.mine && g.mtype === 18 && g.mstate === 0;
+    });
+    if(!keeper) return;
+
+    var ab = choice(KEEPER_ABILITIES);
+    currentBossAbility = ab;
+    bossAbilityTimer = 0;
+
+    // Применяем эффект
+    applyKeeperAbility(ab, keeper);
+
+    var px = isoX(keeper.x, keeper.y), py = isoY(keeper.x, keeper.y) + TH2;
+    addText(px, py - 36, ab.icon + ' ' + ab.name, ab.color);
+    sparkle(px, py, ab.color);
+}
+
+function applyKeeperAbility(ab, keeper){
+    var px = isoX(keeper.x, keeper.y), py = isoY(keeper.x, keeper.y) + TH2;
+
+    if(ab.id === 'fog'){
+        // Повелитель тумана: скрыть 3 клетки
+        var safeRevealed = G.grid.filter(function(g){
+            return !g.mine && g.revealed && !g.item && !g.stair && !heroProtected(g);
+        });
+        shuffle(safeRevealed);
+        var n = Math.min(3, safeRevealed.length);
+        for(var i = 0; i < n; i++){
+            safeRevealed[i].revealed = false;
+            safeRevealed[i].revealT = -1e9;
+            G.revealedSafe = Math.max(0, G.revealedSafe - 1);
+            poof(isoX(safeRevealed[i].x, safeRevealed[i].y), isoY(safeRevealed[i].x, safeRevealed[i].y) + TH2);
+        }
+        SND.fogSpread();
+        G.shake = 8;
+    }
+    else if(ab.id === 'swap'){
+        // Король тени: поменять местами 2 пары
+        var safeCells = G.grid.filter(function(g){
+            return !g.mine && !g.obstacle && !g.item && !g.stair && !g.flagged && !heroProtected(g);
+        });
+        var minesLeft = G.grid.filter(function(g){
+            return g.mine && g.mstate === 0 && g !== keeper;
+        });
+        shuffle(safeCells); shuffle(minesLeft);
+        var swaps = Math.min(2, safeCells.length, minesLeft.length);
+        for(var i = 0; i < swaps; i++){
+            var src = minesLeft[i], dst = safeCells[i];
+            if(dst.revealed){
+                dst.revealed = false;
+                dst.revealT = -1e9;
+                G.revealedSafe = Math.max(0, G.revealedSafe - 1);
+            }
+            dst.mine = true;
+            dst.mtype = src.mtype;
+            dst.mstate = 0;
+            dst.spawnT = now;
+            src.mine = false;
+            src.mtype = 0;
+        }
+        SND.shadowShift();
+        G.shake = 12;
+        flashRed();
+    }
+    else if(ab.id === 'stone'){
+        // Горгона: 2 клетки в колонны
+        var safeRevealed2 = G.grid.filter(function(g){
+            return !g.mine && g.revealed && !g.item && !g.stair && !g.obstacle && !heroProtected(g);
+        });
+        shuffle(safeRevealed2);
+        var ns = Math.min(2, safeRevealed2.length);
+        for(var i = 0; i < ns; i++){
+            safeRevealed2[i].obstacle = true;
+            poof(isoX(safeRevealed2[i].x, safeRevealed2[i].y), isoY(safeRevealed2[i].x, safeRevealed2[i].y) + TH2);
+        }
+        SND.stoneCreak();
+        ensureConnectivity();
+        G.shake = 10;
+    }
+    else if(ab.id === 'raise'){
+        // Некромант: воскресить 2 убитых
+        var killed = G.grid.filter(function(g){
+            return g.mine && g.mstate === 2 && g !== c && g.mtype !== 18;
+        });
+        var targets = G.grid.filter(function(g){
+            return !g.mine && !g.revealed && !g.obstacle && !g.item && !g.stair && !g.flagged;
+        });
+        if(killed.length && targets.length){
+            shuffle(killed); shuffle(targets);
+            var n = Math.min(2, killed.length, targets.length);
+            for(var i = 0; i < n; i++){
+                var src = killed[i], dst = targets[i];
+                dst.mine = true;
+                dst.mtype = src.mtype;
+                dst.mstate = 0;
+                dst.spawnT = now;
+                src.mine = false;
+                src.mtype = 0;
+                src.mstate = 0;
+
+                if(src.revealed){
+                    G.revealedSafe++;
+                }
+                sparkle(isoX(dst.x, dst.y), isoY(dst.x, dst.y) + TH2, '#a064d2');
+            }
+            SND.resurrect();
+        }
+        G.shake = 8;
+    }
+    else if(ab.id === 'spawn'){
+        // Создать 3 слизня в закрытых клетках
+        var queued = {};
+        for(var q = 0; q < revealQueue.length; q++){
+            queued[revealQueue[q].c.x + ',' + revealQueue[q].c.y] = true;
+        }
+        var closed = G.grid.filter(function(g){
+            return !g.mine && !g.revealed && !g.obstacle && !g.item && !g.stair && !g.flagged && !queued[g.x + ',' + g.y];
+        });
+        shuffle(closed);
+        var n = Math.min(3, closed.length);
+        for(var i = 0; i < n; i++){
+            closed[i].mine = true;
+            closed[i].mtype = 0;
+            closed[i].mstate = 0;
+            closed[i].spawnT = now;
+            G.mines++;
+            G.totalSafe--;
+            sparkle(isoX(closed[i].x, closed[i].y), isoY(closed[i].x, closed[i].y) + TH2, '#7fc25a');
+        }
+        SND.split();
+        G.shake = 6;
+    }
+    else if(ab.id === 'boom'){
+        // Демон: взрыв вокруг Хранителя
+        var neighbors = neighbors8(keeper);
+        for(var i = 0; i < neighbors.length; i++){
+            var n = neighbors[i];
+            if(!n.revealed && !n.flagged && !n.obstacle){
+                n.revealed = true;
+                n.revealT = now;
+                if(!n.mine){
+                    G.revealedSafe++;
+                    pickup(n);
+                }
+                if(n.mine && n.mstate === 0){
+                    n.mstate = 2;
+                    n.mT = now;
+                    monsterLoot(n);
+                }
+            }
+        }
+        SND.explode();
+        fiery(px, py);
+        G.shake = 14;
+    }
+    else if(ab.id === 'freeze'){
+        // Морозный дух: пометить все знамёна как "вмерзшие" на время
+        // (упрощённо — просто добавим визуальный эффект льда)
+        for(var i = 0; i < G.grid.length; i++){
+            if(G.grid[i].flagged){
+                G.grid[i].frozenByKeeper = now + BOSS_ABILITY_DURATION * 1000;
+            }
+        }
+        SND.frostCrack();
+    }
+    else if(ab.id === 'shift'){
+        // Бесёнок: случайно сдвинуть 2 знамени
+        var flags = G.grid.filter(function(g){ return g.flagged; });
+        shuffle(flags);
+        var n = Math.min(2, flags.length);
+        for(var i = 0; i < n; i++){
+            var f = flags[i];
+            var neighbors = neighbors8(f).filter(function(g){
+                return !g.mine && !g.revealed && !g.flagged && !g.obstacle && !g.item && !g.stair;
+            });
+            if(neighbors.length){
+                var target = choice(neighbors);
+                f.flagged = false;
+                target.flagged = true;
+                sparkle(isoX(f.x, f.y), isoY(f.x, f.y) + TH2, '#ff9ce0');
+                sparkle(isoX(target.x, target.y), isoY(target.x, target.y) + TH2, '#ff9ce0');
+            }
+        }
+        SND.impGiggle();
+    }
+    recalcAdjAlive();
 }
 // Мимик-обманщик: искажение цифр
 function applyAllNumberEffects(){
@@ -2279,6 +2670,43 @@ function moveImpFlag(c, imp, oldPx, oldPy){
 }
 function monsterStrike(c){
 if(G.state!=='play')return;
+// Хранитель: 3 жизни, телепорт при атаке
+if(c.mtype === 18 && c.bossHP > 0){
+    c.bossHP--;
+    if(c.bossHP > 0){
+        // Теряет жизнь, но не умирает — телепорт
+        monsterLoot(c);
+        BESTIARY.unlock(c.mtype);
+        // Не считаем как открытый — остаётся миной
+        c.mstate = 0;
+        c.revealed = false;
+        c.revealT = -1e9;
+
+        var dmg = (RUN.god) ? 0 : (RUN.armor ? 0 : 1);
+        if(!RUN.god){
+            if(RUN.armor){
+                RUN.armor = false;
+                SND.clank();
+                addText(isoX(c.x,c.y), isoY(c.x,c.y)+TH2-16, 'Броня разбита!', '#9fd0ff');
+            } else {
+                RUN.hearts -= 1;
+                SND.boom();
+                fiery(isoX(c.x,c.y), isoY(c.x,c.y)+TH2);
+                addText(isoX(c.x,c.y), isoY(c.x,c.y)+TH2-16, '-1 ♥', '#ff6b5e');
+            }
+        }
+
+        keeperTeleport(c, false);
+        G.shake = 16;
+        flashRed();
+        hudSync(true);
+        if(RUN.hearts <= 0) defeat();
+        var h=G.hero;
+        if(h.cx===c.x&&h.cy===c.y&&h.last){h.cx=h.last.x;h.cy=h.last.y;}
+        return;
+    }
+    // Последняя жизнь — умрёт как обычно (пройдёт дальше по коду)
+}
 c.revealed=true;c.revealT=now;c.mstate=1;c.mT=now;
 recalcAdjAlive();
 var px=isoX(c.x,c.y),py=isoY(c.x,c.y)+TH2;
@@ -2338,7 +2766,36 @@ document.getElementById('btnKnife').classList.remove('active');var px=isoX(c.x,c
 if(c.flagged){c.flagged=false;G.flags--;}
 if(c.mine){
 BESTIARY.unlock(c.mtype);
-if(c.mtype === 8){
+// Хранитель: нож тоже отнимает жизнь
+if(c.mine && c.mtype === 18 && c.bossHP > 0){
+    c.bossHP--;
+    G.knifeMode = false;
+    document.getElementById('btnKnife').classList.remove('active');
+    if(c.bossHP > 0){
+        SND.knifeHit();
+        BESTIARY.unlock(c.mtype);
+        sparkle(isoX(c.x,c.y), isoY(c.x,c.y)+TH2, '#ffd700');
+        addText(isoX(c.x,c.y), isoY(c.x,c.y)+TH2-16, 'ПОПАЛ! (' + c.bossHP + ' ♥)', '#ffd700');
+        keeperTeleport(c, false);
+        recalcAdjAlive();
+        hudSync(true);
+        return;
+    } else {
+        // ← ДОБАВЛЕНО: последний удар — смерть
+        c.revealed = true; c.revealT = now; c.mstate = 2; c.mT = now;
+        SND.knifeHit();
+        monsterLoot(c);
+        BESTIARY.unlock(c.mtype);
+        sparkle(isoX(c.x,c.y), isoY(c.x,c.y)+TH2, '#ffd700');
+        sparkle(isoX(c.x,c.y), isoY(c.x,c.y)+TH2, '#a064d2');
+        addText(isoX(c.x,c.y), isoY(c.x,c.y)+TH2-24, 'ХРАНИТЕЛЬ ПАЛ!', '#ffd700');
+        G.shake = 14;
+        recalcAdjAlive();
+        hudSync(true);
+        checkWin();
+        return;
+    }
+  }else if(c.mtype === 8){
     // МАГНИТНОЕ ПОЛЕ: нож отклоняется в случайную смежную клетку
     SND.knifeBlocked();
     addText(px, py - 16, 'МАГНИТ!', '#7ec8ff');
@@ -2346,7 +2803,7 @@ if(c.mtype === 8){
     G.shake = 5;
 
     var adjCells = neighbors8(c).filter(function(n){
-        return !n.revealed && !n.flagged;
+        return !n.revealed && !n.flagged && n.mtype !== 18;
     });
     if(adjCells.length > 0){
         var target = choice(adjCells);
@@ -2444,6 +2901,12 @@ SND.frostCrack();
 toast('Знамя вмерзло в лёд — дух должен пасть!');
 return;
 }
+if(c.frozenByKeeper && c.frozenByKeeper > now){
+    c.pulseT = now;
+    SND.frostCrack();
+    toast('Знамя вмерзло в лёд!');
+    return;
+}
 c.flagged=false;G.flags--;
 SND.unflag();
 if(c.phantomFlagTimer){clearTimeout(c.phantomFlagTimer);c.phantomFlagTimer=null;}
@@ -2461,7 +2924,23 @@ startImpTimer(c, px, py);
 hudSync(true);
 }
 function checkWin(){
-if(G.state==='play'&&G.revealedSafe>=G.totalSafe)victory();
+    if(G.state !== 'play') return;
+    if(G.revealedSafe < G.totalSafe) return;
+    if(RUN.floor === 20){
+        var keeper = null;
+        for(var i = 0; i < G.grid.length; i++){
+            if(G.grid[i].mine && G.grid[i].mtype === 18
+               && G.grid[i].mstate === 0 && G.grid[i].bossHP > 0){  // ← добавлено
+                keeper = G.grid[i];
+                break;
+            }
+        }
+        if(keeper){
+            toast('Хранитель жив! Осталось жизней: ' + keeper.bossHP);
+            return;
+        }
+    }
+    victory();
 }
 function victory(){
 if(ROTANIM.active) finishRotAnim();
@@ -2481,11 +2960,28 @@ sparkle(isoX(c.x,c.y),isoY(c.x,c.y)+TH2,'#9fe08a');
 },delay);
 })(mines[i],i*70);
 }
+if(RUN.floor >= 20){
+    setTimeout(function(){
+        victoryBanner();
+    }, 800);
+}
 setTimeout(function(){
-if(G.state!=='won')return;
-if(RUN.floor>=15){RUN.active=false;showEnd(true);}
-else openCamp(bonus);
-},900+mines.length*70);
+    if(G.state!=='won')return;
+    // На 20 уровне — только если Хранитель мёртв
+    if(RUN.floor >= 20){
+        var keeperAlive = G.grid.some(function(g){
+            return g.mine && g.mtype === 18 && g.mstate === 0 && g.bossHP > 0;
+        });
+        if(keeperAlive){
+            // Не должен случиться, но для страховки
+            return;
+        }
+        RUN.active = false;
+        showEnd(true);
+    } else {
+        openCamp(bonus);
+    }
+}, 900 + mines.length * 70);
 }
 function defeat(){
 if(ROTANIM.active) finishRotAnim();
@@ -4076,6 +4572,111 @@ ctx.restore();
         ctx.stroke();
     }
     ctx.restore();
+}else if(c.mtype === 18){
+    // ХРАНИТЕЛЬ СЕРДЦА ГОРЫ
+    var keeperPulse = 0.7 + 0.3 * Math.sin(now * 0.003 + c.seed);
+    var keeperFloat = Math.sin(now * 0.002 + c.seed) * 3;
+    var hpLeft = c.bossHP || 1;
+
+    ctx.save();
+    ctx.translate(0, keeperFloat);
+
+    // Огромная аура — золото и пурпур
+    ctx.globalCompositeOperation = 'lighter';
+    var kGlow = ctx.createRadialGradient(0, -16, 6, 0, -16, 36);
+    kGlow.addColorStop(0, 'rgba(255, 215, 0,' + (keeperPulse * 0.6) + ')');
+    kGlow.addColorStop(0.4, 'rgba(200, 120, 255,' + (keeperPulse * 0.4) + ')');
+    kGlow.addColorStop(1, 'rgba(100, 40, 150, 0)');
+    ctx.fillStyle = kGlow;
+    ctx.beginPath();
+    ctx.arc(0, -16, 36, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+
+    // Кристаллическое тело
+    ctx.fillStyle = '#3a1a4a';
+    ctx.beginPath();
+    ctx.moveTo(-14, 4);
+    ctx.lineTo(-16, -14);
+    ctx.lineTo(-10, -26);
+    ctx.lineTo(0, -30);
+    ctx.lineTo(10, -26);
+    ctx.lineTo(16, -14);
+    ctx.lineTo(14, 4);
+    ctx.closePath();
+    ctx.fill();
+
+    // Золотые грани
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-10, -26);
+    ctx.lineTo(0, -14);
+    ctx.lineTo(10, -26);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, -14);
+    ctx.lineTo(0, 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-16, -14);
+    ctx.lineTo(0, -14);
+    ctx.lineTo(16, -14);
+    ctx.stroke();
+
+    // Центральный глаз
+    ctx.fillStyle = '#ff0040';
+    ctx.beginPath();
+    ctx.arc(0, -18, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(0, -18, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(0, -18, 1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Корона из 5 шипов
+    ctx.fillStyle = '#ffd700';
+    for(var spike = 0; spike < 5; spike++){
+        var angle = -Math.PI / 2 + (spike - 2) * 0.35;
+        var sx = Math.cos(angle) * 12;
+        var sy = -26 + Math.sin(angle) * 4;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx + Math.cos(angle) * 8, sy + Math.sin(angle) * 8 - 4);
+        ctx.lineTo(sx + 2, sy);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    // Индикаторы жизней (3 сердца)
+    for(var hi = 0; hi < 3; hi++){
+        var hx = -8 + hi * 8;
+        var hy = 12;
+        ctx.fillStyle = hi < hpLeft ? '#ff4a5a' : 'rgba(80,40,60,0.5)';
+        ctx.beginPath();
+        ctx.arc(hx, hy, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        if(hi < hpLeft){
+            ctx.shadowColor = '#ff4a5a';
+            ctx.shadowBlur = 6;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    // Индикатор текущей способности
+    if(currentBossAbility && RUN.floor === 20){
+        ctx.font = '8px "Press Start 2P", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = currentBossAbility.color;
+        ctx.fillText(currentBossAbility.icon, 0, -38);
+    }
+
+    ctx.restore();
 }
 if(c.mstate===1&&now-c.mT<280){
 ctx.globalCompositeOperation='lighter';
@@ -4583,6 +5184,50 @@ function drawSlain(c){
         ctx.beginPath();ctx.moveTo(0,-3);
         ctx.lineTo(Math.cos(wi*1.6)*14, -3+Math.sin(wi*1.6)*8);ctx.stroke();
     }
+}else if(c.mtype === 18){
+    // ХРАНИТЕЛЬ — разрушенный кристалл
+    ctx.fillStyle = '#3a1a4a';
+    ctx.beginPath();
+    ctx.moveTo(-10, -4);
+    ctx.lineTo(-6, -14);
+    ctx.lineTo(0, -10);
+    ctx.lineTo(6, -14);
+    ctx.lineTo(10, -4);
+    ctx.lineTo(6, 2);
+    ctx.lineTo(-6, 2);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-6, -8);
+    ctx.lineTo(0, -12);
+    ctx.lineTo(6, -8);
+    ctx.stroke();
+
+    // Разбитый глаз
+    ctx.fillStyle = 'rgba(255, 0, 64, 0.7)';
+    ctx.beginPath();
+    ctx.arc(0, -9, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-2, -10);
+    ctx.lineTo(2, -8);
+    ctx.moveTo(-1, -7);
+    ctx.lineTo(1, -11);
+    ctx.stroke();
+
+    // Золотая пыль
+    var gpulse = 0.4 + 0.4 * Math.sin(now * 0.005 + c.seed);
+    ctx.fillStyle = 'rgba(255, 215, 0,' + gpulse + ')';
+    for(var gi = 0; gi < 6; gi++){
+        ctx.beginPath();
+        ctx.arc(-8 + gi * 3.2, -2 + Math.sin(gi) * 2, 1, 0, Math.PI * 2);
+        ctx.fill();
+    }
 }else{
     // Запасной вариант, если тип неизвестен
     ctx.fillStyle = '#3a3e48';
@@ -4882,6 +5527,7 @@ ctx.restore();
 function draw(dt){
 ctx.setTransform(DPR,0,0,DPR,0,0);
 var bgTop='#0d101c', bgMid='#080a12', bgBot='#04050a';
+if(G.floorTheme==='final'){ bgTop='#1a0a2e'; bgMid='#0f0519'; bgBot='#05020a'; }
 if(G.floorTheme==='bw'){   bgTop='#17171c'; bgMid='#0c0c0f'; bgBot='#050506'; }
 if(G.floorTheme==='acid'){ bgTop='#0a1a10'; bgMid='#061008'; bgBot='#020604'; }
 if(G.floorTheme==='hell'){ bgTop='#240a06'; bgMid='#140405'; bgBot='#080203'; }
@@ -5118,6 +5764,14 @@ if(!ROTANIM.active){
       wormT -= 12;
       moveWorms();
     }
+    // Таймер способностей Хранителя
+    if(RUN.floor === 20 && G.state === 'play'){
+        bossAbilityTimer += dt;
+        if(bossAbilityTimer >= BOSS_ABILITY_DURATION){
+            bossAbilityTimer -= BOSS_ABILITY_DURATION;
+            switchBossAbility();
+        }
+    }
   }
 }
 for(var mi=0;mi<G.grid.length;mi++){
@@ -5216,17 +5870,38 @@ function bossBanner(title, sub, theme){
     el.classList.remove('show','boss','theme-bw','theme-acid','theme-hell');
   },3600);
 }
+function victoryBanner(){
+    var el = $('banner');
+    var score = calcScore();
+    el.innerHTML = '<div class="b1">👑 ПОБЕДА 👑</div>' +
+                   '<div class="b2">Сердце горы покорено</div>' +
+                   '<div class="b3">★ СЧЁТ: ' + score + ' ★</div>';
+    el.classList.remove('boss','theme-bw','theme-acid','theme-hell','theme-final','victory');
+    // форсируем reflow для перезапуска анимации
+    void el.offsetWidth;
+    el.classList.add('victory','show');
+    clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(function(){
+        el.classList.remove('show','victory');
+    }, 6000);
+}
 function announceFloor(){
   var f=RUN.floor;
   if(isBossFloor(f)){
-    var bd=BOSS_FLOORS[f];
-    var m=MONSTERS[G.bossType];
-    SND.descend();
-    bossBanner('☠ '+bd.title+' ☠',
-      bd.sub+' · ХОЗЯИН: '+m.icon+' '+m.name+' · «'+m.ability+'»',
-      bd.theme);
+      var bd = BOSS_FLOORS[f];
+      var m = MONSTERS[G.bossType];
+      SND.descend();
+      if(f === 20){
+          bossBanner('☠ ' + bd.title + ' ☠',
+              bd.sub + ' · ' + m.icon + ' ' + m.name + ' · 3 ЖИЗНИ',
+              bd.theme);
+      } else {
+          bossBanner('☠ ' + bd.title + ' ☠',
+              bd.sub + ' · ХОЗЯИН: ' + m.icon + ' ' + m.name + ' · «' + m.ability + '»',
+              bd.theme);
+      }
   } else {
-    banner('ЯРУС '+f, floorTag(f));
+      banner('ЯРУС ' + f, floorTag(f));
   }
 }
 // ---------- экраны ----------
@@ -5336,9 +6011,11 @@ function showEnd(won){
   currentEndScore = calcScore();
 
   if(won){
-    $('endTitle').textContent = 'СЕРДЦЕ ГОРЫ ДОСТИГНУТО';
-    $('endTitle').className = 'win';
-    $('endSub').textContent = 'Пятнадцать ярусов позади. Золото древних королей — твоё!';
+    if(RUN.floor >= 20){
+        $('endTitle').textContent = '👑 СЕРДЦЕ ГОРЫ ПОКОРЕНО 👑';
+        $('endTitle').className = 'win';
+        $('endSub').textContent = 'Двадцать ярусов позади. Хранитель пал. Золото древних королей — твоё!';
+    }
   }else{
     $('endTitle').textContent = 'ЗАБЕГ ОКОНЧЕН';
     $('endTitle').className = 'lose';
@@ -5622,10 +6299,12 @@ function startTestRun() {
     scoreSubmitted = false;
     lastScore = -1;
     currentEndScore = 0;
-    G.rot = 0;
+    bossAbilityTimer = 0;
+    currentBossAbility = null;
+    generateMonsterPool();   // ← ДОБАВИТЬ ЭТУ СТРОКУ
 
     // 3. Подменяем стандартные значения на тестовые
-    RUN.floor = clamp(testFloor, 1, 15);
+    RUN.floor = clamp(testFloor, 1, 20);
     RUN.gold = testGold;
     RUN.maxHearts = clamp(testMaxHearts, 1, 10);
     RUN.hearts = clamp(testHearts, 1, RUN.maxHearts);
