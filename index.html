@@ -6038,7 +6038,7 @@ var c=cv.getContext('2d');
 var rng=mulberry(900+s*131);
 var n=6+Math.floor(rng()*4);
 for(var i=0;i<n;i++){
-var px=34+rng()*60,py=26+rng()*28,r=16+rng()*20;
+var px=34+rng()*60,py=26+rng()*28,r=16+rng()*30;
 var a=.08+rng()*.09;
 var g=c.createRadialGradient(px,py,0,px,py,r);
 g.addColorStop(0,'rgba(158,176,208,'+a+')');
@@ -6059,20 +6059,20 @@ var v=Math.floor(c.seed*7)%tileFog.length;
 var flip=(Math.floor(c.seed*13)%2)?-1:1;
 var m=.5+.5*Math.sin(t*(1.0+agit)+c.seed*5);
 ctx.save();
-ctx.globalAlpha=(1.56+.20*m)*li;
+ctx.globalAlpha=(1.26+1.20*m)*li;
 ctx.translate(cx,cy-3);
 ctx.scale(1,.6);
-ctx.drawImage(tileFog[v],-TW2*1.05,-40,TW2*2.1,80);
+ctx.drawImage(tileFog[v],-TW2*1.8 ,-40,TW2*2.1,80);
 ctx.restore();
 var v2=(v+1+Math.floor(c.seed*29)%3)%tileFog.length;
 var dx=Math.sin(t*(.6+agit*1.6)+c.seed*9)*(4+agit*5);
 var dy=Math.cos(t*(.45+agit*1.2)+c.seed*7)*2.5-6-agit*2;
 var m2=.5+.5*Math.sin(t*.8+c.seed*11+2);
 ctx.save();
-ctx.globalAlpha=(.80+.20*m2)*li;
+ctx.globalAlpha=(1.80+.20*m2)*li;
 ctx.translate(cx+dx,cy+dy);
 ctx.scale(flip,1.70+.08*m2);
-ctx.drawImage(tileFog[v2],-TW2*.9,-36,TW2*1.8,72);
+ctx.drawImage(tileFog[v2],-TW2*1.9,-36,TW2*1.8,72);
 ctx.restore();
 }
 function drawBats(dt){
