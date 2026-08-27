@@ -604,70 +604,6 @@ h1{font-size:20px;margin-bottom:8px}
         padding:14px 12px;
     }
 }
-/* Центрирование контента на титульном экране */
-#title{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:100vh;
-    min-height:100dvh; /* для мобильных браузеров */
-}
-
-#title .title-inner{
-    width:100%;
-    max-width:880px;
-    margin:0 auto;
-}
-
-/* Мобильная адаптация: уменьшаем отступы сверху */
-@media(max-width:600px){
-    #title{
-        padding:20px 0;
-    }
-
-    #title .title-inner{
-        padding:20px 12px;
-    }
-
-    #title h1{
-        font-size:clamp(20px, 7vw, 36px);
-        line-height:1.3;
-        margin-bottom:16px;
-    }
-
-    #title .kicker{
-        font-size:9px;
-        margin-bottom:14px;
-    }
-}
-
-/* Очень маленькие экраны */
-@media(max-width:400px){
-    #title h1{
-        font-size:clamp(18px, 8vw, 28px);
-    }
-}
-
-/* Ландшафтная ориентация на телефоне */
-@media(max-height:500px) and (orientation:landscape){
-    #title{
-        padding:10px 0;
-    }
-
-    #title .title-inner{
-        padding:10px 12px;
-    }
-
-    #title h1{
-        font-size:clamp(18px, 5vh, 28px);
-        margin-bottom:8px;
-    }
-
-    #title .kicker{
-        font-size:8px;
-        margin-bottom:8px;
-    }
-}
 </style>
 </head>
 <body>
@@ -728,7 +664,7 @@ h1{font-size:20px;margin-bottom:8px}
 <div class="title-actions">
     <button class="btn primary hidden" id="btnContinue">▶ ПРОДОЛЖИТЬ</button>
     <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
-    <button class="btn" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
+    <button class="btn hidden" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
 </div>
 </div>
 </div>
@@ -1045,7 +981,7 @@ function calcScore(){
   var heartScore = 0;
 
   var winBonus = 0;
-  if (G.state === 'won' && RUN.floor >= 20) {
+  if (G.state === 'won' && RUN.floor >= 15) {
     winBonus = 1500;
   }
 
@@ -1154,7 +1090,7 @@ var DIFFS=[
 {id:'robber',name:'ГРОБОВНИК',density:.16,goldMul:1,tag:'классический баланс риска'},
 {id:'devil',name:'СОРВИГОЛОВА',density:.195,goldMul:1.25,tag:'тесно от монстров, сундуки жирнее'},
 ];
-var FLOOR_NAMES=['','Верхние катакомбы','Костяные галереи','Затопленные штольни','Корни горы','Склеп шёпотов','Провалы','Бездна','Логово древнего','За краем карты','Безымянная глубь','Гнилые топи','Мерзлотный разлом','Червоточина','Пепельные залы','Гранитные врата','Кровавые своды','Пустой чертог','Последний порог','Сердце горы'];
+var FLOOR_NAMES=['','Верхние катакомбы','Костяные галереи','Затопленные штольни','Корни горы','Склеп шёпотов','Провалы','Бездна','Логово древнего','За краем карты','Безымянная глубь','Гнилые топи','Мерзлотный разлом','Червоточина','Пепельные залы','Сердце горы'];
 var CAMP_LINES=[
 'Торговец раскладывает товар на каменной плите и зажигает фонарь.',
 '«Чем глубже — тем кусачее», — скалится торговец, пересчитывая твоё золото.',
@@ -1976,13 +1912,6 @@ function generateMonsterPool(){
         for(var j = 0; j < need && j < remaining.length; j++){
             pool.push(remaining[j]); // всегда с начала → накопительно
         }
-
-        // === Тематические босс-ярусы: весь этаж из одного вида монстров ===
-        if(f === 5)  pool = [4];   // ПРОКЛЯТЫЙ СКЛЕП — обитель призраков
-        if(f === 10) pool = [10];  // ИСКРИВЛЁННАЯ БЕЗДНА — черви точат камень
-        if(f === 15) pool = [11];  // ПРЕДДВЕРИЕ АДА — хохот бесов
-        // Ярус 20 не трогаем: один Хранитель + обычный пул
-
         G.floorPools[f] = pool;
     }
 }
@@ -2000,6 +1929,7 @@ function pickMType(counts){
     // Босс размещается отдельно в placeMines().
     // Здесь выбираются только обычные монстры из пула яруса.
     var pool = (G.floorPools && G.floorPools[RUN.floor]) ? G.floorPools[RUN.floor] : [0];
+
     var available = pool.filter(function(t){
         if(t >= 6 && t <= 9  && (counts[t]||0) >= 5) return false;
         if(t === 10 && (counts[t]||0) >= 5) return false;
@@ -2541,7 +2471,7 @@ recalcAdjAlive();
 // Некромант: воскрешение при смерти
 function necromancerResurrect(c){
 if(c.mtype !== 6) return;
-var killed = G.grid.filter(function(g){return g.mine && g.mstate === 2 && g !== keeper && g.mtype !== 18;});
+var killed = G.grid.filter(function(g){return g.mine && g.mstate === 2 && g !== c && g.mtype !== 18;});
 var targets = G.grid.filter(function(g){
 return !g.mine && !g.revealed && !g.obstacle && !g.item && !g.stair && !g.flagged;
 });
@@ -6448,7 +6378,7 @@ bannerTimer=setTimeout(function(){el.classList.remove('show');},2400);
 function bossBanner(title, sub, theme){
   var el=$('banner');
   el.innerHTML='<div class="b1">'+title+'</div><div class="b2">'+sub+'</div>';
-  el.classList.remove('theme-bw','theme-acid','theme-hell', 'theme-final');
+  el.classList.remove('theme-bw','theme-acid','theme-hell');
   el.classList.add('boss','theme-'+theme,'show');
   clearTimeout(bannerTimer);
   bannerTimer=setTimeout(function(){
@@ -6616,7 +6546,7 @@ function showEnd(won){
 
   $('endStats').innerHTML =
     rowHtml('СЧЁТ', currentEndScore) +
-    rowHtml('Ярусов зачищено', won ? 20 : RUN.floor - 1) +
+    rowHtml('Ярусов зачищено', won ? 15 : RUN.floor - 1) +
     rowHtml('Монстров убито', RUN.kills) +
     rowHtml('Видов встречено', bestProg.unlocked + '/' + bestProg.total) +
     rowHtml('Золота добыто', RUN.goldEarned) +
