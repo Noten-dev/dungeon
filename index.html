@@ -123,8 +123,8 @@ background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1
 }
 #banner{position:fixed;top:36%;left:50%;transform:translateX(-50%);z-index:15;text-align:center;pointer-events:none;opacity:0;transition:opacity .6s;width:100%}
 #banner.show{opacity:1}
-#banner .b1{font-family:'Press Start 2P',monospace;font-size:clamp(20px,4vw,34px);color:#ffd9a0;text-shadow:0 0 24px rgba(255,150,50,.55),0 3px 0 #3a1f0c}
-#banner .b2{font-size:20px;color:var(--dim);margin-top:12px;font-style:italic}
+#banner .b1{font-family:'Press Start 2P',monospace;font-size:clamp(40px,10vw,120px);color:#ffd9a0;text-shadow:0 0 24px rgba(255,150,50,.55),0 3px 0 #3a1f0c}
+#banner .b2{font-size:45px;color:#f4f0f0;margin-top:12px;font-style:italic;text-shadow: 0 0 12px rgba(255, 255, 255,.5)}
 #banner.boss .b1{
   font-size:clamp(22px,5vw,46px);
   letter-spacing:.14em;
@@ -721,13 +721,13 @@ h1{font-size:20px;margin-bottom:8px}
 <p class="lore">Ярус за ярусом вниз — золото древних королей и монстры, что его охраняют.
 Твой <b>амулет</b> чует чудовищ: цифра на плите показывает, сколько из них затаилось вокруг.
 На каждом ярусе спрятан <b>сундук</b> с крупной добычей — найди его!
-Зачистил уровень — спускайся глубже. В <b>лагере</b> между ярусами торговец продаст улучшения.
+Зачистил ярус — спускайся глубже. В <b>лагере</b> между ярусами торговец продаст улучшения.
 Двадцать ярусов до сердца горы. Дойдёшь ли ты до конца?</p>
 <div class="cards" id="cards"></div>
 <div class="title-actions">
     <button class="btn primary hidden" id="btnContinue">▶ ПРОДОЛЖИТЬ</button>
     <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
-    <button class="btn hidden" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
+    <button class="btn" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
 </div>
 </div>
 </div>
@@ -811,15 +811,15 @@ h1{font-size:20px;margin-bottom:8px}
 <ul class="rules">
 <li><b>Цифра на плите</b> — сколько монстров прячется в 8 соседних клетках.</li>
 <li><b>Знамя</b> — <span class="k">ПКМ</span> / <span class="k">долгий тап</span> / <span class="k">F</span>: пометить подозрительную плиту.</li>
-<li><b>Аккорд</b> — клик по цифре, если вокруг стоит нужное число знамён, откроет соседей.</li>
-<li><b>♥ Жизни.</b> Наступил на монстра — она умирает, но ты теряешь сердце. Ноль сердец — конец забега.</li>
+<li><b>Аккорд</b> — клик по цифре: если знамён достаточно — соседи откроются, но если ты ошибся, то могут открыться те, кого не стоит беспокоить.</li>
+<li><b>♥ Жизни.</b> Наступил на монстра — он умирает, но ты теряешь сердце.	 Ноль сердец — конец забега.</li>
 <li><b>💰 Сундук.</b> На каждом ярусе спрятан сундук с крупной добычей.</li>
 <li><b>Зачисти ярус</b> (все безопасные плиты) — откроется лагерь торговца, затем спуск глубже. Монстров становится больше.</li>
 <li><b>† Нож</b> — <span class="k">K</span> затем клик по закрытой плите: убивает монстра издалека. Промах — нож потерян.</li>
 <li><b>✸ Бомба</b> — <span class="k">V</span> затем клик по стене: разрушает препятствие.</li>
 <li><b>🛡 Броня</b> блокирует один удар. <b>✚ Зелья</b> и <b>♥ сердца</b> продаются в лагере.</li>
 <li>Каждый убитый монстр роняет немного золота.</li>
-<li><b>Новые монстры.</b> Каждый ярус в подземелье просыпается новый вид — всего 14. Изучай бестиарий, чтобы знать их способности.</li>
+<li><b>Новые монстры.</b> С каждым ярусом в подземелье просыпается новый вид. Изучай бестиарий, чтобы знать их способности.</li>
 <li><b>20 ярусов</b> отделяют тебя от сердца горы. Зачистишь все — победа.</li>
 <li>Движение: <span class="k">ЛКМ</span> <span class="k">WASD</span> <span class="k">СТРЕЛКИ</span> · знамя перед собой: <span class="k">SPACE</span> · звук: <span class="k">M</span> · рестарт: <span class="k">R</span></li>
 </ul>
@@ -830,7 +830,7 @@ h1{font-size:20px;margin-bottom:8px}
 <div id="bestiary" class="screen hidden">
 <div class="bestiary-panel">
 <button class="close-x" id="btnBestiaryX" title="Закрыть">X</button>
-<h2> БЕСТИАРИЙ ТУМАННЫХ ГЛУБИН</h2>
+<h2>БЕСТИАРИЙ ТУМАННЫХ ГЛУБИН</h2>
 <div class="bestiary-progress" id="bestiaryProgress">Открыто: 0 / 14</div>
 <div class="bestiary-grid" id="bestiaryGrid"></div>
 </div>
@@ -846,10 +846,7 @@ h1{font-size:20px;margin-bottom:8px}
 <script>
 'use strict';
 /* ============================================================
-ТУМАННЫЕ ГЛУБИНЫ — рогалик-сапёр о подземелье в 15 ярусов
-14 видов монстров: каждый ярус добавляет в пул один новый вид.
-Боссов больше нет — бывшие боссы стали редкими монстрами.
-Новые твари: подземный червь, бесёнок, скверна, морозный дух.
+ТУМАННЫЕ ГЛУБИНЫ — рогалик-сапёр о подземелье. Каждый ярус добавляет в пул один новый вид.
 ============================================================ */
 // ---------- ДАННЫЕ О МОНСТРАХ ----------
 var MONSTERS = {
@@ -948,7 +945,7 @@ id: 'worm',
 name: 'Подземный червь',
 icon: '🪱',
 desc: 'Слепой гигант, что роется под плитами подземелья. Земля дрожит от его ходов.',
-ability: 'РОЕТ',
+ability: 'ПОДЗЕМНЫЙ ХОД',
 abilityDesc: 'Каждые 12 секунд переползает в соседнюю закрытую клетку. Цифры пересчитываются — монстр не стоит на месте!',
 weakness: 'Не трогает открытые клетки, знамёна и сундуки — его маршрут ограничен.',
 },
@@ -958,7 +955,7 @@ name: 'Бесёнок',
 icon: '😈',
 desc: 'Мелкая пакость из нижних туннелей. Обожает чужие ошибки и громко хихикает.',
 ability: 'ШАЛОСТЬ',
-abilityDesc: 'Когда ставишь знамя в радиусе 2 от него, знамя перескакивает на случайную соседнюю закрытую клетку.',
+abilityDesc: 'Когда ставишь знамя в радиусе 2 от него, через 5 секунд знамя перескакивает на случайную закрытую клетку поодаль',
 weakness: 'Сам никогда не кусается — только путает.',
 },
 12: {
@@ -1001,7 +998,7 @@ weakness: 'Ставить новые знамёна рядом можно — н
     id: 'stone_gorgon',
     name: 'Каменная Горгона',
     icon: '🐍',
-    desc: 'Слепое чудовище с волосами из шипящих змей. Её взгляд тяжел, как сама гора.',
+    desc: 'Слепое чудовище с волосами из шипящих змей. Само её присутствие давит, как каменная плит',
     ability: 'ОКАМЕНЕНИЕ',
     abilityDesc: 'При гибели превращает 2 случайные открытые безопасные клетки в непроходимые каменные колонны.',
     weakness: 'Убивайте, когда разведан большой участок и есть обходные пути.',
@@ -1180,7 +1177,7 @@ buy:function(r){r.bombs++;}},
 {id:'armor',icon:'🛡',name:'КОСТЯНАЯ БРОНЯ',desc:'Блокирует один удар',
 price:function(){return 70;},can:function(r){return !r.armor;},
 buy:function(r){r.armor=true;}},
-{id:'map',icon:'🗺',name:'КАРТА РАЗВЕДЧИКА',desc:'Откроет кусок след. яруса',
+{id:'map',icon:'🗺',name:'КАРТА РАЗВЕДЧИКА',desc:'Откроет кусок следующего яруса',
 price:function(){return 60;},can:function(r){return r.maps<5;},
 buy:function(r){r.maps++;}},
 ];
@@ -1273,18 +1270,19 @@ phase:Math.random()*Math.PI*2
 })();
 // ---------- звук ----------
 var SND={
+bgMuted: false,
 ctx:null,master:null,on:true,ambStarted:false,
 load:function(){try{this.on=localStorage.getItem('td_snd')!=='0';}catch(e){}},
 ensure:function(){
 if(!this.ctx){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;
 this.ctx=new C();this.master=this.ctx.createGain();this.master.gain.value=this.on?0.5:0;this.master.connect(this.ctx.destination);}
-if(this.ctx.state==='suspended'){this.ctx.resume();}
-this.startAmbient();
-},
+if(this.ctx.state === 'suspended' && !document.hidden){ this.ctx.resume(); }
+this.startAmbient();},
 setOn:function(v){this.on=v;try{localStorage.setItem('td_snd',v?'1':'0');}catch(e){}
 if(this.master){this.master.gain.value=v?0.5:0;}},
 tone:function(f0,f1,dur,type,vol,delay){
-if(!this.ctx)return;type=type||'sine';vol=vol||.2;delay=delay||0;
+if(!this.ctx || this.bgMuted) return;
+type=type||'sine';vol=vol||.2;delay=delay||0;
 var t=this.ctx.currentTime+delay;
 var o=this.ctx.createOscillator(),g=this.ctx.createGain();
 o.type=type;o.frequency.setValueAtTime(Math.max(f0,1),t);
@@ -1292,6 +1290,19 @@ o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
 g.gain.setValueAtTime(vol,t);
 g.gain.exponentialRampToValueAtTime(.0001,t+dur);
 o.connect(g);g.connect(this.master);o.start(t);o.stop(t+dur+.05);
+},
+blurPause: function(){
+  this.bgMuted = true;
+  if(this.master){ this.master.gain.value = 0; }
+  if(this.ctx && this.ctx.state === 'running'){
+    this.ctx.suspend();
+  }
+},
+focusResume: function(){
+  if(!this.ctx) return;
+  this.bgMuted = false;
+  if(this.ctx.state === 'suspended'){ this.ctx.resume(); }
+  if(this.master){ this.master.gain.value = this.on ? 0.5 : 0; }
 },
 noise:function(dur,vol,fq,delay){
 if(!this.ctx)return;vol=vol||.2;fq=fq||800;delay=delay||0;
@@ -2103,7 +2114,7 @@ function newFloor(){
     var cs=Math.floor(G.N/2);
     placeMines(cellAt(cs,cs));
 
-    if(RUN.maps>0){RUN.maps--;applyScout();}
+    if(RUN.maps>0){applyScout();}
     G.knifeMode=false;G.flagMode=false;
     G.bombMode=false;
     document.getElementById('btnFlag').classList.remove('active');
@@ -2140,23 +2151,48 @@ function newFloor(){
                       }).join(', ');
                       notifyNewMonster('НОВЫЕ МОНСТРЫ: ' + names, '');
                   }
-            },1000);
+            },2500);
         })(RUN.floor);
     }
 }
 function applyScout(){
-var safe=G.grid.filter(function(c){return !c.mine&&!c.stair&&!c.revealed&&!c.obstacle;});
-if(!safe.length)return;
-var c=safe[Math.floor(Math.random()*safe.length)];
-var cells=[c].concat(neighbors8(c)),i=0;
+// Одна карта = одна область. За один спуск тратим до 3 карт.
+var used = 0;
+var maxUses = Math.min(RUN.maps, 3);
+
+while(used < maxUses){
+// Центр области: закрытая безопасная клетка без предметов и знамён
+var safe = G.grid.filter(function(c){
+return !c.mine && !c.stair && !c.revealed && !c.obstacle && !c.item && !c.flagged;
+});
+if(!safe.length) break;
+
+var c = safe[Math.floor(Math.random()*safe.length)];
+var cells = [c].concat(neighbors8(c));
+var queued = 0;
+
+// Ставим клетки в очередь открытия — сработают звук, частицы,
+// анимация и даже авто-раскрытие нулевых клеток (flood)
 for(var j=0;j<cells.length;j++){
-var n=cells[j];
-if(n.mine||n.revealed||n.item)continue;
-n.revealed=true;n.revealT=now+i*90;i++;
-G.revealedSafe++;
+var n = cells[j];
+if(n.mine || n.revealed || n.item || n.flagged) continue;
+revealQueue.push({c:n, t: now + 300 + (used*9 + j)*90, w: j});
+queued++;
 }
-addText(isoX(c.x,c.y),isoY(c.x,c.y)+TH2,'Карта разведчика','#9fd0ff');
-checkWin();
+
+if(!queued) break;
+
+RUN.maps--;
+used++;
+
+addText(isoX(c.x,c.y), isoY(c.x,c.y)+TH2-10, '🗺 КАРТА РАЗВЕДЧИКА', '#9fd0ff');
+sparkle(isoX(c.x,c.y), isoY(c.x,c.y)+TH2, '#9fd0ff');
+}
+
+if(used > 0){
+sortQ();
+toast('Карта разведчика открывает путь (×' + used + ')');
+}
 }
 function startRun(d, fromSave){
 SND.ensure();
@@ -2540,7 +2576,7 @@ recalcAdjAlive();
 // Некромант: воскрешение при смерти
 function necromancerResurrect(c){
 if(c.mtype !== 6) return;
-var killed = G.grid.filter(function(g){return g.mine && g.mstate === 2 && g !== keeper && g.mtype !== 18;});
+var killed = G.grid.filter(function(g){return g.mine && g.mstate === 2 && g.mtype !== 18;});
 var targets = G.grid.filter(function(g){
 return !g.mine && !g.revealed && !g.obstacle && !g.item && !g.stair && !g.flagged;
 });
@@ -2811,9 +2847,9 @@ function applyKeeperAbility(ab, keeper){
     }
     else if(ab.id === 'raise'){
         // Некромант: воскресить 2 убитых
-        var killed = G.grid.filter(function(g){
-            return g.mine && g.mstate === 2 && g !== c && g.mtype !== 18;
-        });
+	   var killed = G.grid.filter(function(g){
+		 return g.mine && g.mstate === 2 && g !== keeper && g.mtype !== 18;
+	   });
         var targets = G.grid.filter(function(g){
             return !g.mine && !g.revealed && !g.obstacle && !g.item && !g.stair && !g.flagged;
         });
@@ -3177,7 +3213,7 @@ function moveImpFlag(c, imp, oldPx, oldPy){
   // Если хочешь, чтобы бесёнок мог снова утащить этот флаг через 5 секунд,
   // оставь эту строку.
   // Если нужен только один прыжок за установку флага — удали её.
-  startImpTimer(t, tx, ty);
+  //startImpTimer(t, tx, ty);
 }
 function monsterStrike(c){
 if(G.state!=='play')return;
@@ -3266,8 +3302,8 @@ function throwKnife(c){
 if(ROTANIM.active) return;
 if(RUN.knives<=0){G.knifeMode=false;return;}
 if(!c)return;
-if(!G.firstDone){toast('Сперва разведай пол — ножи не для пустоты');SND.deny();return;}
-if(c.revealed){toast('Нож нужен по скрытой плите');SND.deny();return;}
+if(!G.firstDone){toast('Сперва разведай плиты — ножи не для пустоты');SND.deny();return;}
+if(c.revealed){toast('Нож бросают по скрытой плите');SND.deny();return;}
 RUN.knives--;
 SND.knife();
 
@@ -3354,7 +3390,7 @@ c.revealed=true;c.revealT=now;c.mstate=2;c.mT=now;
 SND.knifeHit();monsterLoot(c);
 if(c.mtype === 16) gorgonPetrify(c);
 recalcAdjAlive();
-sparkle(px,py,'#ffd76e');addText(px,py-16,'ПОВЕРЖЕНА','#9fe08a');
+sparkle(px,py,'#ffd76e');addText(px,py-16,'ПОВЕРЖЕН','#9fe08a');
 if(c.mtype===0)trySlimeSplit(c);
 if(c.mtype===2)demonExplode(c);
 if(c.mtype===6)necromancerResurrect(c);
@@ -3605,6 +3641,8 @@ if(h.stepT<1)return;
 h.cx=h.seg.tx;h.cy=h.seg.ty;h.seg=null;
 SND.step(h.cx+h.cy);
 dustAt(isoX(h.cx,h.cy),isoY(h.cx,h.cy)+TH2);
+var hc = cellAt(h.cx, h.cy);
+if(hc && hc.revealed && !hc.obstacle) pickup(hc);
 if(h.queue.length){startSeg();return;}
 if(h.pending){
 var p=h.pending;h.pending=null;
@@ -3650,7 +3688,7 @@ if(tryChord(c))return;
 walkRevealed(c);
 return;
 }
-if(!isFrontier(c)){toast('Слишком далеко — сперва развей туман рядом');SND.deny();return;}
+if(!isFrontier(c)){toast('Слишком далеко — сперва рассей туман рядом');SND.deny();return;}
 walkHidden(c);
 }
 function tryStep(dx,dy){
@@ -4598,7 +4636,7 @@ if(c.mstate===1){
 var a=(now-c.mT)/300;
 sc=a<1?1+Math.sin(a*Math.PI)*.45:1;
 }
-if(c.mstate===2){sc=.92;offy=3;alpha=.9;}
+if(c.mstate===2){sc=.92;offy=3;alpha=.4;}
 ctx.save();ctx.translate(px,py+offy);ctx.globalAlpha=alpha;
 if(c.spawnT > 0 && now - c.spawnT < 800 && c.mstate <= 1){
 var spawnProgress = (now - c.spawnT) / 800;
@@ -6552,7 +6590,7 @@ $('campSub').textContent=choice(CAMP_LINES);
 if(bonus>0){
 $('campBonus').textContent='Бонус за ярус: +'+bonus+' золота';
 }else{
-$('campBonus').textContent='💰 Ищите сундук с золотом на каждом ярусе!';
+$('campBonus').textContent='💰 Ищи сундук с золотом на каждом ярусе!';
 }
 $('btnDescend').textContent='▼ СПУСТИТЬСЯ НА ЯРУС '+(RUN.floor+1);
 renderCamp();
@@ -6564,7 +6602,8 @@ $('campRes').innerHTML='<span class="coin"></span> '+RUN.gold+
 ' &nbsp;·&nbsp; ♥ '+RUN.hearts+'/'+RUN.maxHearts+
 ' &nbsp;·&nbsp; † '+RUN.knives+
 ' &nbsp;·&nbsp; ✸ '+RUN.bombs+
-(RUN.armor?' &nbsp;·&nbsp; 🛡':'');
+(RUN.armor?' &nbsp;·&nbsp; 🛡':'')+
+(RUN.maps>0?' &nbsp;·&nbsp; 🗺 '+RUN.maps:'');
 var g=$('shopGrid');
 g.innerHTML='';
 for(var i=0;i<SHOP.length;i++){
@@ -6642,9 +6681,6 @@ function showEnd(won){
   $('hud').classList.add('hidden');
 }
 function toMenu(){
-if (RUN.active && G.state === 'play') {
-  saveRun('play');
-}
 RUN.active=false;
 G.rot=0;
 G.knifeMode=false;G.flagMode=false;
@@ -6965,11 +7001,14 @@ $('btnCancelTest').addEventListener('click', function() {
     $('testMenu').classList.add('hidden');
 });
 $('btnStartTest').addEventListener('click', startTestRun);
-window.addEventListener('pagehide', function(){
-  if (RUN.active && G.state === 'play') {
-    saveRun('play');
-  }
+// --- глушим звук, когда вкладка свёрнута или не в фокусе ---
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden){ SND.blurPause(); }
+  else { SND.focusResume(); }
 });
+
+window.addEventListener('blur',  function(){ SND.blurPause(); });
+window.addEventListener('focus', function(){ SND.focusResume(); });
 </script>
 </body>
 </html>
