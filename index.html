@@ -6402,8 +6402,6 @@ var dt=clamp((ts-lastTs)/1000,0,.05);
 lastTs=ts;now=ts;
 frameTick = (frameTick + 1) % QUALITY.brightStep;
 
-if(paused){ requestAnimationFrame(frame); return; }
-
 // ---------- обновление анимации поворота ----------
 if(ROTANIM.active){
   ROTANIM.t = Math.min(1, ROTANIM.t + dt / ROTANIM.dur);
@@ -6429,7 +6427,7 @@ if(ROTANIM.active){
 
 // Пока идёт анимация, игровую логику лучше поставить на паузу,
 // чтобы новые события не появлялись в старых/новых координатах.
-if(!ROTANIM.active){
+if(!paused && !ROTANIM.active){
   if(RUN.active && G.state === 'play') RUN.time += dt;
 
   if(G.state === 'play'){
