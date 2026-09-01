@@ -858,6 +858,23 @@ h1{font-size:20px;margin-bottom:8px}
 </div>
 <script>
 'use strict';
+function gameplayStart() {
+    paused = false; // Снимаем игру с паузы при старте яруса
+}
+
+function gameplayStop() {
+    paused = true; // Ставим игровой цикл на паузу, пока открыты меню/лагерь
+    
+    // Очищаем очереди движения и открытий, чтобы на фоне ничего не происходило
+    if (G && G.hero) {
+        G.hero.seg = null;
+        G.hero.queue.length = 0;
+        G.hero.pending = null;
+    }
+    if (typeof revealQueue !== 'undefined') {
+        revealQueue.length = 0;
+    }
+}
 /* ============================================================
 ТУМАННЫЕ ГЛУБИНЫ — рогалик-сапёр о подземелье. Каждый ярус добавляет в пул один новый вид.
 ============================================================ */
