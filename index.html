@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Туманные Глубины — рогалик-сапёр</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕯️</text></svg>">
+<script src="/sdk.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
@@ -845,6 +846,81 @@ h1{font-size:20px;margin-bottom:8px}
 </div>
 <script>
 'use strict';
+/* ===== Yandex Games SDK ===== */
+var YG = {
+  inited: false,
+  ysdk: null,
+  env: null,
+  player: null,
+  leaderboard: null,
+  lang: 'ru'
+};
+
+function initYandexSDK(){
+  return new Promise(function(resolve){
+    if(typeof YaGames === 'undefined'){
+      resolve();
+      return;
+    }
+    YaGames.init().then(function(ysdk){
+      YG.inited = true;
+      YG.ysdk = ysdk;
+      YG.env = ysdk.environment;
+      YG.lang = ysdk.environment.i18n.lang || 'ru';
+
+      var promises = [];
+      promises.push(
+        ysdk.getPlayer().then(function(p){ YG.player = p; }).catch(function(){})
+      );
+      promises.push(
+        ysdk.getLeaderboards().then(function(lb){ YG.leaderboard = lb; }).catch(function(){})
+      );
+
+      return Promise.all(promises).then(function(){ resolve(); });
+    }).catch(function(err){
+      console.warn('[YG] init error', err);
+      resolve();
+    });
+  });
+}
+
+function showRewardedAd(onSuccess, onFail){
+  if(!YG.inited || !YG.ysdk || !YG.ysdk.adv){
+    if(onSuccess) onSuccess();
+    return;
+  }
+
+  var rewarded = false;
+
+  YG.ysdk.adv.showRewardedVideo({
+    callbacks: {
+      onRewarded: function(){
+        rewarded = true;
+        if(onSuccess) onSuccess();
+      },
+      onClose: function(){
+        if(!rewarded && onFail) onFail();
+      },
+      onError: function(err){
+        console.warn('[YG] rewarded error', err);
+        if(onFail) onFail();
+      }
+    }
+  });
+}
+
+function showInterstitialAd(){
+  if(!YG.inited || !YG.ysdk || !YG.ysdk.adv) return;
+
+  YG.ysdk.adv.showFullscreenAdv({
+    callbacks: {
+      onClose: function(){},
+      onError: function(err){
+        console.warn('[YG] interstitial error', err);
+      }
+    }
+  });
+}
 /* ============================================================
 ТУМАННЫЕ ГЛУБИНЫ — рогалик-сапёр о подземелье. Каждый ярус добавляет в пул один новый вид.
 ============================================================ */
@@ -1592,6 +1668,7 @@ var currentBossAbility = null;      // текущая способность Х�
 var BOSS_ABILITY_DURATION = 15;     // секунд на одну способность
 var lastH=-1,lastMH=-1,lastAr=false,lastM=-999,lastG=-1,lastT='',lastF=-1,lastK='',lastB=-1,lastScore=-1;
 var scoreSubmitted=false;
+var reviveUsed=false;
 var currentEndScore=0;var revealQueue=[],parts=[],texts=[],bats=[],nextBat=4000;
 function idx(x,y){return y*G.N+x;}
 function cellAt(x,y){if(x<0||y<0||x>=G.N||y>=G.N)return null;return G.grid[idx(x,y)];}
@@ -2196,7 +2273,7 @@ toast('Карта разведчика открывает путь (×' + used +
 }
 function startRun(d, fromSave){
 SND.ensure();
-RUN.active=true;RUN.isTest=false;RUN.floor=1;RUN.gold=0;RUN.hearts=3;RUN.maxHearts=3;
+RUN.active=true;reviveUsed=false;RUN.isTest=false;RUN.floor=1;RUN.gold=0;RUN.hearts=3;RUN.maxHearts=3;
 RUN.knives=0;RUN.armor=false;RUN.lanternBuys=0;RUN.heartBuys=0;RUN.maps=0;
 RUN.kills=0;RUN.goldEarned=0;RUN.time=0;RUN.diff=d;RUN.newRec=false;
 RUN.god = false;
@@ -3555,21 +3632,127 @@ setTimeout(function(){
 }, 900 + mines.length * 70);
 }
 function defeat(){
-if(ROTANIM.active) finishRotAnim();
+  if(ROTANIM.active) finishRotAnim();
 
-G.state='lost';G.stateT=now;G.fogLift=true;revealQueue.length=0;
-RUN.active=false;
-clearRunSave();
-SND.lose();
-for(var i=0;i<G.grid.length;i++){
-var c=G.grid[i];
-c.revealed=true;
-if(c.mine&&c.mstate!==2){c.mstate=3;c.mT=now;}
+  G.state='lost';
+  G.stateT=now;
+  G.fogLift=true;
+  revealQueue.length=0;
+  RUN.active=false;
+  clearRunSave();
+  SND.lose();
+
+  if(updateBest(RUN.floor-1)) RUN.newRec=true;
+
+  // Если SDK подключён и игрок ещё не воскрешался — даём шанс
+  if(!reviveUsed && YG.inited){
+    showReviveOption();
+  } else {
+    revealAllMonsters();
+    setTimeout(function(){ showEnd(false); }, 1500);
+  }
 }
-if(updateBest(RUN.floor-1))RUN.newRec=true;
-setTimeout(function(){showEnd(false);},1500);
+
+function revealAllMonsters(){
+  for(var i=0;i<G.grid.length;i++){
+    var c=G.grid[i];
+    c.revealed=true;
+    if(c.mine && c.mstate!==2){
+      c.mstate=3;
+      c.mT=now;
+    }
+  }
 }
-// ---------- рекорды ----------
+
+function showReviveOption(){
+  $('endTitle').textContent = 'ГЕРОЙ ПАЛ';
+  $('endTitle').className = 'lose';
+  $('endSub').textContent = 'Ярус ' + RUN.floor + ' — ' + floorTag(RUN.floor);
+
+  $('endRec').classList.add('hidden');
+  $('endStats').innerHTML = '';
+  $('scoreSubmit').classList.add('hidden');
+  $('scoreMsg').textContent = '';
+
+  // Кнопка воскрешения за рекламу
+  var reviveBtn = $('btnRevive');
+  if(!reviveBtn){
+    reviveBtn = document.createElement('button');
+    reviveBtn.id = 'btnRevive';
+    reviveBtn.className = 'btn primary';
+    reviveBtn.style.marginBottom = '12px';
+    reviveBtn.style.width = '100%';
+    reviveBtn.textContent = '📺 ВОСКРЕСНУТЬ (РЕКЛАМА)';
+
+    var btnRow = $('end').querySelector('.btnrow');
+    btnRow.parentNode.insertBefore(reviveBtn, btnRow);
+
+    reviveBtn.addEventListener('click', function(){
+      reviveBtn.disabled = true;
+
+      showRewardedAd(function(){
+        // Успешно посмотрел рекламу — воскрешаем
+        reviveUsed = true;
+        RUN.hearts = 1;
+        RUN.armor = false;
+        G.fogLift = false;
+
+        $('end').classList.add('hidden');
+        $('hud').classList.remove('hidden');
+
+        G.state = 'play';
+        RUN.active = true;
+
+        // Возвращаем монстров в туман
+        for(var i=0;i<G.grid.length;i++){
+          var c=G.grid[i];
+          if(c.mine && c.mstate === 3){
+            c.mstate = 0;
+            c.revealed = false;
+            c.revealT = -1e9;
+          }
+        }
+
+        recalcAdjAlive();
+        hudSync(true);
+        toast('Герой восстал из мёртвых!');
+        SND.potion();
+        saveRun('play');
+
+        reviveBtn.disabled = false;
+      }, function(){
+        // Реклама не показалась / игрок закрыл — обычный экран смерти
+        reviveBtn.disabled = false;
+        revealAllMonsters();
+        setTimeout(function(){ showEnd(false); }, 800);
+      });
+    });
+  }
+  reviveBtn.style.display = 'block';
+
+  // Кнопка «Сдаться»
+  var giveUpBtn = $('btnGiveUp');
+  if(!giveUpBtn){
+    giveUpBtn = document.createElement('button');
+    giveUpBtn.id = 'btnGiveUp';
+    giveUpBtn.className = 'btn';
+    giveUpBtn.style.marginBottom = '12px';
+    giveUpBtn.style.width = '100%';
+    giveUpBtn.textContent = 'СДАТЬСЯ';
+
+    var btnRow2 = $('end').querySelector('.btnrow');
+    btnRow2.parentNode.insertBefore(giveUpBtn, btnRow2);
+
+    giveUpBtn.addEventListener('click', function(){
+      revealAllMonsters();
+      setTimeout(function(){ showEnd(false); }, 800);
+    });
+  }
+  giveUpBtn.style.display = 'block';
+
+  $('end').classList.remove('hidden');
+  $('hud').classList.add('hidden');
+}// ---------- рекорды ----------
 function loadBest(){try{return JSON.parse(localStorage.getItem('td_best2')||'{}');}catch(e){return {};}}
 function updateBest(cleared){
 var b=loadBest(),prev=b[RUN.diff.id]||0;
@@ -6634,8 +6817,10 @@ g.appendChild(d);
 }
 function rowHtml(k,v){return '<div class="row"><span>'+k+'</span><b>'+v+'</b></div>';}
 function showEnd(won){
-  currentEndScore = calcScore();
+var rb = $('btnRevive'); if(rb) rb.style.display='none';
+var gb = $('btnGiveUp'); if(gb) gb.style.display='none';
 
+currentEndScore = calcScore();
   if(won){
     if(RUN.floor >= 20){
         $('endTitle').textContent = '👑 СЕРДЦЕ ГОРЫ ПОКОРЕНО 👑';
@@ -6794,13 +6979,18 @@ addEventListener('orientationchange',function(){
 document.addEventListener('gesturestart',function(e){e.preventDefault();}); // пинч-зум в iOS
 document.addEventListener('dblclick',function(e){e.preventDefault();});     // зум двойным тапом
 // ---------- старт ----------
-if(document.fonts&&document.fonts.load){document.fonts.load('12px "Press Start 2P"');}
-$('btnSound').textContent=SND.on?'♪ вкл':'♪ выкл';
-newGame({size:14,mines:44},true);
-buildCards();
-$('btnContinue').addEventListener('click', continueRun);
-updateContinueButton();
-requestAnimationFrame(frame);
+initYandexSDK().then(function(){
+  if(YG.inited && YaGames.features && YaGames.features.LoadingAPI){
+    YaGames.features.LoadingAPI.ready();
+  }
+  if(document.fonts&&document.fonts.load){document.fonts.load('12px "Press Start 2P"');}
+  $('btnSound').textContent=SND.on?'♪ вкл':'♪ выкл';
+  newGame({size:14,mines:44},true);
+  buildCards();
+  $('btnContinue').addEventListener('click', continueRun);
+  updateContinueButton();
+  requestAnimationFrame(frame);
+});
 // ---------- ТЕСТОВЫЙ РЕЖИМ ----------
 function debugSpawnMonster(type, count){
   type = parseInt(type, 10);
