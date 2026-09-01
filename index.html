@@ -718,17 +718,24 @@ h1{font-size:20px;margin-bottom:8px}
 <div class="title-inner">
 <div class="kicker">РОГАЛИК-САПЁР</div>
 <h1>ТУМАННЫЕ<br>ГЛУБИНЫ</h1>
-<p class="lore">Ярус за ярусом вниз — золото древних королей и монстры, что его охраняют.
-Твой <b>амулет</b> чует чудовищ: цифра на плите показывает, сколько из них затаилось вокруг.
-На каждом ярусе спрятан <b>сундук</b> с крупной добычей — найди его!
-Зачистил ярус — спускайся глубже. В <b>лагере</b> между ярусами торговец продаст улучшения.
-Двадцать ярусов до сердца горы. Дойдёшь ли ты до конца?</p>
+<p class="lore">Добро пожаловать, искатель приключений! Ты попал в опасное подземелье. К счастью, твой <b>амулет</b> чувствует чудовищ: число на плите показывает, сколько их прячется вокруг неё. Сможешь ли ты дойти до конца?</p>
 <div class="cards" id="cards"></div>
 <div class="title-actions">
     <button class="btn primary hidden" id="btnContinue">▶ ПРОДОЛЖИТЬ</button>
     <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
     <button class="btn hidden" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
 </div>
+</div>
+</div>
+</div>
+<!-- Экран воскрешения -->
+<div id="resurrectScreen" class="screen hidden">
+<div class="panel-big">
+<h2 style="color:var(--amber)">💀 ТЫ ПАЛ...</h2>
+<p class="sub">Но древний амулет может вернуть тебя к жизни один раз за забег.</p>
+<div class="btnrow" style="margin-top:24px; flex-direction:column; gap:12px;">
+<button class="btn primary" id="btnResurrectAd" style="width:100%; padding:16px;">🎬 ВОСКРЕСНУТЬ (РЕКЛАМА)</button>
+<button class="btn" id="btnResurrectGiveUp" style="width:100%; padding:14px;">СДАТЬСЯ</button>
 </div>
 </div>
 </div>
@@ -810,7 +817,7 @@ h1{font-size:20px;margin-bottom:8px}
 <h2 style="color:var(--amber)">СВИТОК НАСТАВЛЕНИЙ</h2>
 <ul class="rules">
 <li><b>Цифра на плите</b> — сколько монстров прячется в 8 соседних клетках.</li>
-<li><b>Знамя</b> — <span class="k">ПКМ</span> / <span class="k">долгий тап</span> / <span class="k">F</span>: пометить подозрительную плиту.</li>
+<li><b>Знамя</b> — <span class="k">ПКМ</span> / <span class="k">долгий тап</span>: пометить подозрительную плиту.</li>
 <li><b>Аккорд</b> — клик по цифре: если знамён достаточно — соседи откроются, но если ты ошибся, то могут открыться те, кого не стоит беспокоить.</li>
 <li><b>♥ Жизни.</b> Наступил на монстра — он умирает, но ты теряешь сердце.	 Ноль сердец — конец забега.</li>
 <li><b>💰 Сундук.</b> На каждом ярусе спрятан сундук с крупной добычей.</li>
@@ -821,7 +828,7 @@ h1{font-size:20px;margin-bottom:8px}
 <li>Каждый убитый монстр роняет немного золота.</li>
 <li><b>Новые монстры.</b> С каждым ярусом в подземелье просыпается новый вид. Изучай бестиарий, чтобы знать их способности.</li>
 <li><b>20 ярусов</b> отделяют тебя от сердца горы. Зачистишь все — победа.</li>
-<li>Движение: <span class="k">ЛКМ</span> <span class="k">WASD</span> <span class="k">СТРЕЛКИ</span> · знамя перед собой: <span class="k">SPACE</span> · звук: <span class="k">M</span> · рестарт: <span class="k">R</span></li>
+<li>Движение: <span class="k">ЛКМ</span> <span class="k">Тап</span> </li>
 </ul>
 <div class="btnrow"><button class="btn primary" id="btnHelpClose">В БОЙ</button></div>
 </div>
@@ -1443,7 +1450,7 @@ return {unlocked:unlocked, total:total};
 };
 // ---------- состояние ----------
 var RUN={active:false,floor:1,gold:0,hearts:3,maxHearts:3,knives:0,bombs:0,armor:false,
-lanternBuys:0,heartBuys:0,maps:0,kills:0,goldEarned:0,time:0,diff:null,newRec:false};
+lanternBuys:0,heartBuys:0,maps:0,kills:0,goldEarned:0,time:0,diff:null,newRec:false,resurrectUsed:false};
 var G={state:'menu',N:9,mines:0,grid:[],order:[],firstDone:false,started:false,
 flags:0,revealedSafe:0,totalSafe:0,lightBonus:0,fogLift:false,
 hero:{cx:0,cy:0,rx:0,ry:0,seg:null,queue:[],pending:null,stepT:0,face:1,fdir:{dx:0,dy:1},last:{x:0,y:0}},
@@ -1489,7 +1496,8 @@ function saveRun(phase){
     kills: RUN.kills,
     goldEarned: RUN.goldEarned,
     time: RUN.time,
-    floorPools: G.floorPools || null
+    floorPools: G.floorPools || null,
+    floorBasePools: G.floorBasePools || null
   };
 
   try{
@@ -1555,14 +1563,17 @@ function continueRun(){
   RUN.heartBuys = s.heartBuys;
   RUN.maps = s.maps;
   RUN.kills = s.kills;
+     RUN.resurrectUsed = false;
+   pendingDefeat = false;
   RUN.goldEarned = s.goldEarned;
   RUN.time = s.time || 0;
   RUN.newRec = false;
 
   if (s.floorPools) {
-    G.floorPools = s.floorPools;
+      G.floorPools = s.floorPools;
+      G.floorBasePools = s.floorBasePools || s.floorPools;
   } else {
-    generateMonsterPool();
+      generateMonsterPool();
   }
 
   if (s.phase === 'camp') {
@@ -1578,6 +1589,7 @@ function continueRun(){
 
   hudSync(true);
   updateContinueButton();
+  gameplayStart();
 }
 var now=0;
 var ROTANIM = {
@@ -1977,31 +1989,44 @@ function generateMonsterPool(){
     var remaining = [];
     for(var i = 2; i <= 17; i++) remaining.push(i);
     shuffle(remaining);
+
     var poolSizes = [0,1,2,3,4,5,6,7,9,10,12,13,15,16,17,18,18,18,18,18,18];
+
     G.floorPools = [];
+    G.floorBasePools = [];
+
     for(var f = 1; f <= 20; f++){
         var pool = [0];
+
         if(f >= 2) pool.push(1);
+
         var need = poolSizes[f] - pool.length;
+
         for(var j = 0; j < need && j < remaining.length; j++){
             pool.push(remaining[j]); // всегда с начала → накопительно
         }
+
+        G.floorBasePools[f] = pool.slice();
 
         // === Тематические босс-ярусы: весь этаж из одного вида монстров ===
         if(f === 5)  pool = [4];   // ПРОКЛЯТЫЙ СКЛЕП — обитель призраков
         if(f === 10) pool = [10];  // ИСКРИВЛЁННАЯ БЕЗДНА — черви точат камень
         if(f === 15) pool = [11];  // ПРЕДДВЕРИЕ АДА — хохот бесов
-        // Ярус 20 не трогаем: один Хранитель + обычный пул
 
+        // Ярус 20 не трогаем: один Хранитель + обычный пул
         G.floorPools[f] = pool;
     }
 }
 
 // Какие типы новенькие на данном ярусе (для тоста)
 function getNewMonsterTypes(floor){
-    if(!G.floorPools || !G.floorPools[floor]) return [];
-    var prev = (floor > 1 && G.floorPools[floor - 1]) ? G.floorPools[floor - 1] : [];
-    return G.floorPools[floor].filter(function(t){
+    if(!G.floorBasePools || !G.floorBasePools[floor]) return [];
+
+    var prev = (floor > 1 && G.floorBasePools[floor - 1])
+        ? G.floorBasePools[floor - 1]
+        : [];
+
+    return G.floorBasePools[floor].filter(function(t){
         return prev.indexOf(t) === -1;
     });
 }
@@ -2132,28 +2157,28 @@ function newFloor(){
         }, 3000);
     }
 
-    // Подсказка о новой твари
-    if(!isBossFloor(RUN.floor) && RUN.floor >= 2){
-        (function(f){
-            setTimeout(function(){
-                if(G.state !== 'play') return;
-                var newTypes = getNewMonsterTypes(f);
-                if(newTypes.length === 0) return;
-                if(newTypes.length === 1){
-                      var m = MONSTERS[newTypes[0]];
-                      notifyNewMonster(
-                          'НОВЫЙ МОНСТР: ' + m.icon + ' ' + m.name,
-                          '«' + m.ability + '» — ' + m.abilityDesc
-                      );
-                  } else {
-                      var names = newTypes.map(function(t){
-                          return MONSTERS[t].icon + ' ' + MONSTERS[t].name;
-                      }).join(', ');
-                      notifyNewMonster('НОВЫЕ МОНСТРЫ: ' + names, '');
-                  }
-            },2500);
-        })(RUN.floor);
-    }
+	// Подсказка о новой твари
+	if(RUN.floor >= 2){
+	    (function(f){
+	        setTimeout(function(){
+	            if(G.state !== 'play') return;
+	            var newTypes = getNewMonsterTypes(f);
+	            if(newTypes.length === 0) return;
+	            if(newTypes.length === 1){
+	                var m = MONSTERS[newTypes[0]];
+	                notifyNewMonster(
+	                    'НОВЫЙ МОНСТР: ' + m.icon + ' ' + m.name,
+	                    '«' + m.ability + '» — ' + m.abilityDesc
+	                );
+	            } else {
+	                var names = newTypes.map(function(t){
+	                    return MONSTERS[t].icon + ' ' + MONSTERS[t].name;
+	                }).join(', ');
+	                notifyNewMonster('НОВЫЕ МОНСТРЫ: ' + names, '');
+	            }
+	        },2500);
+	    })(RUN.floor);
+	}
 }
 function applyScout(){
 // Одна карта = одна область. За один спуск тратим до 3 карт.
@@ -2204,6 +2229,8 @@ RUN.bombs=0;
 RUN.testMonster = -1;
 RUN.testMonsterOnly = false;
 RUN.testMonsterCount = 0;
+   RUN.resurrectUsed = false;
+   pendingDefeat = false;
 scoreSubmitted=false;
 lastScore=-1;
 currentEndScore=0;
@@ -2224,6 +2251,7 @@ if (!fromSave) {
   announceFloor();
   saveRun('play');
 }
+gameplayStart();
 }
 // ---------- генерация мин и предметов ----------
 function placeMines(fc){
@@ -2260,7 +2288,7 @@ function placeMines(fc){
     var p=0,gm=RUN.diff&&RUN.diff.goldMul?RUN.diff.goldMul:1;
     if(p<safe.length){
         safe[p].item='chest';
-        safe[p].gv=Math.round((irand(60,100)+RUN.floor*20)*gm);
+        safe[p].gv=Math.round((irand(50,80)+RUN.floor*20)*gm);
         p++;
     }
     var nPot=1+(G.N>=14?1:0)+(RUN.floor>=4?1:0);
@@ -3030,7 +3058,12 @@ function applyAllNumberEffects(){
         for(var m = 0; m < mimics.length; m++){
             if(Math.abs(c.x - mimics[m].x) <= 2 && Math.abs(c.y - mimics[m].y) <= 2){
                 var newNum;
-                do { newNum = irand(0, Math.min(8, G.mines)); } while(newNum === c.adj);
+                var maxVal = Math.min(8, G.mines);
+			if(maxVal <= c.adj){
+			    newNum = Math.max(0, c.adj - 1);
+			} else {
+			    do { newNum = irand(0, maxVal); } while(newNum === c.adj);
+			}
                 displayVal = newNum;
                 distorted = true;
                 break;
@@ -3099,6 +3132,8 @@ if(!(c.mine&&c.mtype===4&&c.mstate===0))return;
 if(c.phantomFlagTimer)clearTimeout(c.phantomFlagTimer);
 c.phantomFlagTimer=setTimeout(function(){
 if(c.flagged&&G.state==='play'){
+if(frostNear(c)) { c.phantomFlagTimer=null; return; }
+if(c.frozenByKeeper && c.frozenByKeeper > now) { c.phantomFlagTimer=null; return; }
 c.flagged=false;
 G.flags=Math.max(0,G.flags-1);
 if(c.impFlagTimer){
@@ -3124,6 +3159,8 @@ function startImpTimer(c, px, py){
     c.impFlagTimer = null;
 
     if(G.state !== 'play' || !c.flagged) return;
+    if(frostNear(c)) return;
+    if(c.frozenByKeeper && c.frozenByKeeper > now) return;
 
     var imp = impNear(c);
     if(!imp) return;
@@ -3176,7 +3213,8 @@ function pickImpFarTarget(c, imp){
 // Сам перенос флага бесёнком
 function moveImpFlag(c, imp, oldPx, oldPy){
   if(G.state !== 'play' || !c.flagged) return;
-
+  if(frostNear(c)) return;
+  if(c.frozenByKeeper && c.frozenByKeeper > now) return;
   var t = pickImpFarTarget(c, imp);
   if(!t) return;
 
@@ -3247,7 +3285,7 @@ if(c.mtype === 18 && c.bossHP > 0){
         G.shake = 16;
         flashRed();
         hudSync(true);
-        if(RUN.hearts <= 0) defeat();
+        checkDeath();
         var h=G.hero;
         if(h.cx===c.x&&h.cy===c.y&&h.last){h.cx=h.last.x;h.cy=h.last.y;}
         return;
@@ -3255,7 +3293,6 @@ if(c.mtype === 18 && c.bossHP > 0){
     // Последняя жизнь — умрёт как обычно (пройдёт дальше по коду)
 }
 c.revealed=true;c.revealT=now;c.mstate=1;c.mT=now;
-recalcAdjAlive();
 var px=isoX(c.x,c.y),py=isoY(c.x,c.y)+TH2;
 monsterLoot(c);
 BESTIARY.unlock(c.mtype);
@@ -3288,14 +3325,12 @@ if(c.mtype===6)necromancerResurrect(c);
 if(c.mtype===7)fogLordObscure(c);
 if(c.mtype===9)shadowKingSwap(c);
 if(c.mtype === 16) gorgonPetrify(c);
-recalcAdjAlive();
 var h=G.hero;
 if(h.cx===c.x&&h.cy===c.y&&h.last){h.cx=h.last.x;h.cy=h.last.y;}
 h.seg=null;h.queue.length=0;h.pending=null;
 recalcAdjAlive();
 hudSync(true);
-if(RUN.hearts<=0)defeat();
-else checkWin();
+checkDeath();
 }
 // Нож: щит скелета и каменная шкура хранителя
 function throwKnife(c){
@@ -3514,6 +3549,7 @@ function victory(){
 if(ROTANIM.active) finishRotAnim();
 
 G.state='won';G.stateT=now;G.fogLift=true;revealQueue.length=0;
+gameplayStop();
 if (RUN.floor >= 20) {
   clearRunSave();
 }
@@ -3558,6 +3594,7 @@ function defeat(){
 if(ROTANIM.active) finishRotAnim();
 
 G.state='lost';G.stateT=now;G.fogLift=true;revealQueue.length=0;
+pendingDefeat = false;
 RUN.active=false;
 clearRunSave();
 SND.lose();
@@ -3568,6 +3605,18 @@ if(c.mine&&c.mstate!==2){c.mstate=3;c.mT=now;}
 }
 if(updateBest(RUN.floor-1))RUN.newRec=true;
 setTimeout(function(){showEnd(false);},1500);
+}
+function checkDeath() {
+    if (RUN.hearts <= 0) {
+        // Если еще не воскрешались в этом забеге, SDK загружен и мы еще не ждем выбора
+        if (!RUN.resurrectUsed && !pendingDefeat && PKB_SDK) {
+            showResurrectOption();
+        } else if (!pendingDefeat) {
+            defeat();
+        }
+    } else {
+        checkWin();
+    }
 }
 // ---------- рекорды ----------
 function loadBest(){try{return JSON.parse(localStorage.getItem('td_best2')||'{}');}catch(e){return {};}}
@@ -6596,6 +6645,7 @@ $('btnDescend').textContent='▼ СПУСТИТЬСЯ НА ЯРУС '+(RUN.floor
 renderCamp();
 $('camp').classList.remove('hidden');
 saveRun('camp');
+gameplayStop();
 }
 function renderCamp(){
 $('campRes').innerHTML='<span class="coin"></span> '+RUN.gold+
@@ -6681,8 +6731,10 @@ function showEnd(won){
   $('hud').classList.add('hidden');
 }
 function toMenu(){
+gameplayStop();
 RUN.active=false;
 G.rot=0;
+pendingDefeat = false;
 G.knifeMode=false;G.flagMode=false;
 G.bombMode=false;
 newGame({size:14,mines:44},true);
@@ -6714,6 +6766,7 @@ RUN.floor++;
 newFloor();
 announceFloor();
 saveRun('play');
+gameplayStart();
 });
 $('btnAgain').addEventListener('click',function(){SND.click();startRun(RUN.diff);});
 $('btnToMenu').addEventListener('click',function(){SND.click();toMenu();});
@@ -6794,13 +6847,41 @@ addEventListener('orientationchange',function(){
 document.addEventListener('gesturestart',function(e){e.preventDefault();}); // пинч-зум в iOS
 document.addEventListener('dblclick',function(e){e.preventDefault();});     // зум двойным тапом
 // ---------- старт ----------
-if(document.fonts&&document.fonts.load){document.fonts.load('12px "Press Start 2P"');}
-$('btnSound').textContent=SND.on?'♪ вкл':'♪ выкл';
-newGame({size:14,mines:44},true);
-buildCards();
-$('btnContinue').addEventListener('click', continueRun);
-updateContinueButton();
-requestAnimationFrame(frame);
+let PKB_SDK = null;
+var pendingDefeat = false; // Флаг, что игрок умер и ждет выбора
+
+async function initSDK() {
+    try {
+        if (typeof PkbSDK !== 'undefined') {
+            PKB_SDK = await PkbSDK.init();
+            console.log('Pikabu SDK успешно инициализирован');
+        }
+    } catch (e) {
+        console.error('Ошибка инициализации SDK:', e);
+    }
+    
+    // ---------- старт ----------
+    if(document.fonts&&document.fonts.load){
+        try { await document.fonts.load('12px "Press Start 2P"'); } catch(e){}
+    }
+    $('btnSound').textContent=SND.on?'♪ вкл':'♪ выкл';
+    newGame({size:14,mines:44},true);
+    buildCards();
+    $('btnContinue').addEventListener('click', continueRun);
+    updateContinueButton();
+    requestAnimationFrame(frame);
+    
+    if (PKB_SDK) {
+        try {
+            PKB_SDK.gameStarted(); // Сообщаем платформе, что игра готова
+        } catch(e) { console.error(e); }
+    }
+}
+
+// Страховка: если SDK загрузился синхронно до выполнения этого кода
+if (typeof PkbSDK !== 'undefined' && !PKB_SDK) {
+    initSDK();
+}
 // ---------- ТЕСТОВЫЙ РЕЖИМ ----------
 function debugSpawnMonster(type, count){
   type = parseInt(type, 10);
@@ -7009,6 +7090,70 @@ document.addEventListener('visibilitychange', function(){
 
 window.addEventListener('blur',  function(){ SND.blurPause(); });
 window.addEventListener('focus', function(){ SND.focusResume(); });
+function showResurrectOption() {
+    pendingDefeat = true;
+    // Останавливаем движение героя и очереди открытий, чтобы игра "замерла"
+    revealQueue.length = 0;
+    G.hero.seg = null;
+    G.hero.queue.length = 0;
+    G.hero.pending = null;
+    $('resurrectScreen').classList.remove('hidden');
+}
+
+$('btnResurrectAd').addEventListener('click', async function() {
+    if (!PKB_SDK) {
+        toast('SDK не загружен');
+        return;
+    }
+    
+    $('btnResurrectAd').disabled = true;
+    $('btnResurrectAd').textContent = 'ЗАГРУЗКА...';
+    
+    try {
+        // 1. Проверяем, можно ли показать рекламу
+        const canShow = await PKB_SDK.ads.rewarded.canShow();
+        if (!canShow) {
+            toast('Реклама сейчас недоступна');
+            $('btnResurrectAd').disabled = false;
+            $('btnResurrectAd').textContent = '🎬 ВОСКРЕСНУТЬ (РЕКЛАМА)';
+            return;
+        }
+        
+        // 2. Показываем рекламу
+        const result = await PKB_SDK.ads.rewarded.show();
+        
+        // 3. Проверяем результат (досмотрел ли игрок)
+        if (result && result.reward) {
+            RUN.resurrectUsed = true; // Больше воскреснуть в этом забеге нельзя
+            RUN.hearts = Math.max(1, Math.floor(RUN.maxHearts / 2)); // Возвращаем половину HP
+            $('resurrectScreen').classList.add('hidden');
+            pendingDefeat = false;
+            toast('Древний амулет спас тебя!');
+            SND.potion();
+            sparkle(isoX(G.hero.cx, G.hero.cy), isoY(G.hero.cx, G.hero.cy) + TH2, '#ffd700');
+            hudSync(true);
+        } else {
+            // Игрок закрыл рекламу или стоит блокировщик
+            toast('Ты не досмотрел рекламу...');
+            $('resurrectScreen').classList.add('hidden');
+            defeat();
+        }
+    } catch (e) {
+        console.error(e);
+        toast('Ошибка показа рекламы');
+        $('resurrectScreen').classList.add('hidden');
+        defeat();
+    } finally {
+        $('btnResurrectAd').disabled = false;
+        $('btnResurrectAd').textContent = '🎬 ВОСКРЕСНУТЬ (РЕКЛАМА)';
+    }
+});
+
+$('btnResurrectGiveUp').addEventListener('click', function() {
+    $('resurrectScreen').classList.add('hidden');
+    defeat();
+});
 </script>
+<script async src="https://games.pikabu.ru/sdk/sdk.js" onload="initSDK()"></script>
 </body>
 </html>
