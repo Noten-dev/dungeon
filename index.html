@@ -719,16 +719,12 @@ h1{font-size:20px;margin-bottom:8px}
 <div class="title-inner">
 <div class="kicker">РОГАЛИК-САПЁР</div>
 <h1>ТУМАННЫЕ<br>ГЛУБИНЫ</h1>
-<p class="lore">Ярус за ярусом вниз — золото древних королей и монстры, что его охраняют.
-Твой <b>амулет</b> чует чудовищ: цифра на плите показывает, сколько из них затаилось вокруг.
-На каждом ярусе спрятан <b>сундук</b> с крупной добычей — найди его!
-Зачистил ярус — спускайся глубже. В <b>лагере</b> между ярусами торговец продаст улучшения.
-Двадцать ярусов до сердца горы. Дойдёшь ли ты до конца?</p>
+<p class="lore">Добро пожаловать, искатель приключений! Ты попал в опасное подземелье. К счастью, твой <b>амулет</b> чувствует чудовищ: число на плите показывает, сколько их прячется вокруг неё. Сможешь ли ты дойти до конца?</p>
 <div class="cards" id="cards"></div>
 <div class="title-actions">
     <button class="btn primary hidden" id="btnContinue">▶ ПРОДОЛЖИТЬ</button>
     <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
-    <button class="btn hidden" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
+    <button class="btn" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
 </div>
 </div>
 </div>
@@ -811,7 +807,7 @@ h1{font-size:20px;margin-bottom:8px}
 <h2 style="color:var(--amber)">СВИТОК НАСТАВЛЕНИЙ</h2>
 <ul class="rules">
 <li><b>Цифра на плите</b> — сколько монстров прячется в 8 соседних клетках.</li>
-<li><b>Знамя</b> — <span class="k">ПКМ</span> / <span class="k">долгий тап</span> / <span class="k">F</span>: пометить подозрительную плиту.</li>
+<li><b>Знамя</b> — <span class="k">ПКМ</span> / <span class="k">долгий тап</span>: пометить подозрительную плиту.</li>
 <li><b>Аккорд</b> — клик по цифре: если знамён достаточно — соседи откроются, но если ты ошибся, то могут открыться те, кого не стоит беспокоить.</li>
 <li><b>♥ Жизни.</b> Наступил на монстра — он умирает, но ты теряешь сердце.	 Ноль сердец — конец забега.</li>
 <li><b>💰 Сундук.</b> На каждом ярусе спрятан сундук с крупной добычей.</li>
@@ -822,7 +818,7 @@ h1{font-size:20px;margin-bottom:8px}
 <li>Каждый убитый монстр роняет немного золота.</li>
 <li><b>Новые монстры.</b> С каждым ярусом в подземелье просыпается новый вид. Изучай бестиарий, чтобы знать их способности.</li>
 <li><b>20 ярусов</b> отделяют тебя от сердца горы. Зачистишь все — победа.</li>
-<li>Движение: <span class="k">ЛКМ</span> <span class="k">WASD</span> <span class="k">СТРЕЛКИ</span> · знамя перед собой: <span class="k">SPACE</span> · звук: <span class="k">M</span> · рестарт: <span class="k">R</span></li>
+<li>Движение: <span class="k">ЛКМ</span> <span class="k">Тап</span> </li>
 </ul>
 <div class="btnrow"><button class="btn primary" id="btnHelpClose">В БОЙ</button></div>
 </div>
@@ -920,6 +916,25 @@ function showInterstitialAd(){
       }
     }
   });
+}
+
+/* ---------- GameplayAPI: обёртки ---------- */
+var _gameplayActive = false;
+
+function gameplayStart(){
+    if(_gameplayActive) return;
+    if(YG.inited && YG.ysdk && YG.ysdk.features && YG.ysdk.features.GameplayAPI){
+        try{ YG.ysdk.features.GameplayAPI.start(); }catch(e){}
+        _gameplayActive = true;
+    }
+}
+
+function gameplayStop(){
+    if(!_gameplayActive) return;
+    if(YG.inited && YG.ysdk && YG.ysdk.features && YG.ysdk.features.GameplayAPI){
+        try{ YG.ysdk.features.GameplayAPI.stop(); }catch(e){}
+        _gameplayActive = false;
+    }
 }
 /* ============================================================
 ТУМАННЫЕ ГЛУБИНЫ — рогалик-сапёр о подземелье. Каждый ярус добавляет в пул один новый вид.
@@ -1565,7 +1580,8 @@ function saveRun(phase){
     kills: RUN.kills,
     goldEarned: RUN.goldEarned,
     time: RUN.time,
-    floorPools: G.floorPools || null
+    floorPools: G.floorPools || null,
+    floorBasePools: G.floorBasePools || null
   };
 
   try{
@@ -1636,9 +1652,10 @@ function continueRun(){
   RUN.newRec = false;
 
   if (s.floorPools) {
-    G.floorPools = s.floorPools;
+      G.floorPools = s.floorPools;
+      G.floorBasePools = s.floorBasePools || s.floorPools;
   } else {
-    generateMonsterPool();
+      generateMonsterPool();
   }
 
   if (s.phase === 'camp') {
@@ -1654,6 +1671,7 @@ function continueRun(){
 
   hudSync(true);
   updateContinueButton();
+  gameplayStart();
 }
 var now=0;
 var ROTANIM = {
@@ -2054,31 +2072,44 @@ function generateMonsterPool(){
     var remaining = [];
     for(var i = 2; i <= 17; i++) remaining.push(i);
     shuffle(remaining);
+
     var poolSizes = [0,1,2,3,4,5,6,7,9,10,12,13,15,16,17,18,18,18,18,18,18];
+
     G.floorPools = [];
+    G.floorBasePools = [];
+
     for(var f = 1; f <= 20; f++){
         var pool = [0];
+
         if(f >= 2) pool.push(1);
+
         var need = poolSizes[f] - pool.length;
+
         for(var j = 0; j < need && j < remaining.length; j++){
             pool.push(remaining[j]); // всегда с начала → накопительно
         }
+
+        G.floorBasePools[f] = pool.slice();
 
         // === Тематические босс-ярусы: весь этаж из одного вида монстров ===
         if(f === 5)  pool = [4];   // ПРОКЛЯТЫЙ СКЛЕП — обитель призраков
         if(f === 10) pool = [10];  // ИСКРИВЛЁННАЯ БЕЗДНА — черви точат камень
         if(f === 15) pool = [11];  // ПРЕДДВЕРИЕ АДА — хохот бесов
-        // Ярус 20 не трогаем: один Хранитель + обычный пул
 
+        // Ярус 20 не трогаем: один Хранитель + обычный пул
         G.floorPools[f] = pool;
     }
 }
 
 // Какие типы новенькие на данном ярусе (для тоста)
 function getNewMonsterTypes(floor){
-    if(!G.floorPools || !G.floorPools[floor]) return [];
-    var prev = (floor > 1 && G.floorPools[floor - 1]) ? G.floorPools[floor - 1] : [];
-    return G.floorPools[floor].filter(function(t){
+    if(!G.floorBasePools || !G.floorBasePools[floor]) return [];
+
+    var prev = (floor > 1 && G.floorBasePools[floor - 1])
+        ? G.floorBasePools[floor - 1]
+        : [];
+
+    return G.floorBasePools[floor].filter(function(t){
         return prev.indexOf(t) === -1;
     });
 }
@@ -2209,28 +2240,28 @@ function newFloor(){
         }, 3000);
     }
 
-    // Подсказка о новой твари
-    if(!isBossFloor(RUN.floor) && RUN.floor >= 2){
-        (function(f){
-            setTimeout(function(){
-                if(G.state !== 'play') return;
-                var newTypes = getNewMonsterTypes(f);
-                if(newTypes.length === 0) return;
-                if(newTypes.length === 1){
-                      var m = MONSTERS[newTypes[0]];
-                      notifyNewMonster(
-                          'НОВЫЙ МОНСТР: ' + m.icon + ' ' + m.name,
-                          '«' + m.ability + '» — ' + m.abilityDesc
-                      );
-                  } else {
-                      var names = newTypes.map(function(t){
-                          return MONSTERS[t].icon + ' ' + MONSTERS[t].name;
-                      }).join(', ');
-                      notifyNewMonster('НОВЫЕ МОНСТРЫ: ' + names, '');
-                  }
-            },2500);
-        })(RUN.floor);
-    }
+	// Подсказка о новой твари
+	if(RUN.floor >= 2){
+	    (function(f){
+	        setTimeout(function(){
+	            if(G.state !== 'play') return;
+	            var newTypes = getNewMonsterTypes(f);
+	            if(newTypes.length === 0) return;
+	            if(newTypes.length === 1){
+	                var m = MONSTERS[newTypes[0]];
+	                notifyNewMonster(
+	                    'НОВЫЙ МОНСТР: ' + m.icon + ' ' + m.name,
+	                    '«' + m.ability + '» — ' + m.abilityDesc
+	                );
+	            } else {
+	                var names = newTypes.map(function(t){
+	                    return MONSTERS[t].icon + ' ' + MONSTERS[t].name;
+	                }).join(', ');
+	                notifyNewMonster('НОВЫЕ МОНСТРЫ: ' + names, '');
+	            }
+	        },2500);
+	    })(RUN.floor);
+	}
 }
 function applyScout(){
 // Одна карта = одна область. За один спуск тратим до 3 карт.
@@ -2301,6 +2332,7 @@ if (!fromSave) {
   announceFloor();
   saveRun('play');
 }
+gameplayStart();
 }
 // ---------- генерация мин и предметов ----------
 function placeMines(fc){
@@ -2337,7 +2369,7 @@ function placeMines(fc){
     var p=0,gm=RUN.diff&&RUN.diff.goldMul?RUN.diff.goldMul:1;
     if(p<safe.length){
         safe[p].item='chest';
-        safe[p].gv=Math.round((irand(60,100)+RUN.floor*20)*gm);
+        safe[p].gv=Math.round((irand(50,80)+RUN.floor*20)*gm);
         p++;
     }
     var nPot=1+(G.N>=14?1:0)+(RUN.floor>=4?1:0);
@@ -3107,7 +3139,12 @@ function applyAllNumberEffects(){
         for(var m = 0; m < mimics.length; m++){
             if(Math.abs(c.x - mimics[m].x) <= 2 && Math.abs(c.y - mimics[m].y) <= 2){
                 var newNum;
-                do { newNum = irand(0, Math.min(8, G.mines)); } while(newNum === c.adj);
+                var maxVal = Math.min(8, G.mines);
+			if(maxVal <= c.adj){
+			    newNum = Math.max(0, c.adj - 1);
+			} else {
+			    do { newNum = irand(0, maxVal); } while(newNum === c.adj);
+			}
                 displayVal = newNum;
                 distorted = true;
                 break;
@@ -3176,6 +3213,8 @@ if(!(c.mine&&c.mtype===4&&c.mstate===0))return;
 if(c.phantomFlagTimer)clearTimeout(c.phantomFlagTimer);
 c.phantomFlagTimer=setTimeout(function(){
 if(c.flagged&&G.state==='play'){
+if(frostNear(c)) { c.phantomFlagTimer=null; return; }
+if(c.frozenByKeeper && c.frozenByKeeper > now) { c.phantomFlagTimer=null; return; }
 c.flagged=false;
 G.flags=Math.max(0,G.flags-1);
 if(c.impFlagTimer){
@@ -3201,6 +3240,8 @@ function startImpTimer(c, px, py){
     c.impFlagTimer = null;
 
     if(G.state !== 'play' || !c.flagged) return;
+    if(frostNear(c)) return;
+    if(c.frozenByKeeper && c.frozenByKeeper > now) return;
 
     var imp = impNear(c);
     if(!imp) return;
@@ -3253,7 +3294,8 @@ function pickImpFarTarget(c, imp){
 // Сам перенос флага бесёнком
 function moveImpFlag(c, imp, oldPx, oldPy){
   if(G.state !== 'play' || !c.flagged) return;
-
+  if(frostNear(c)) return;
+  if(c.frozenByKeeper && c.frozenByKeeper > now) return;
   var t = pickImpFarTarget(c, imp);
   if(!t) return;
 
@@ -3332,7 +3374,6 @@ if(c.mtype === 18 && c.bossHP > 0){
     // Последняя жизнь — умрёт как обычно (пройдёт дальше по коду)
 }
 c.revealed=true;c.revealT=now;c.mstate=1;c.mT=now;
-recalcAdjAlive();
 var px=isoX(c.x,c.y),py=isoY(c.x,c.y)+TH2;
 monsterLoot(c);
 BESTIARY.unlock(c.mtype);
@@ -3365,7 +3406,6 @@ if(c.mtype===6)necromancerResurrect(c);
 if(c.mtype===7)fogLordObscure(c);
 if(c.mtype===9)shadowKingSwap(c);
 if(c.mtype === 16) gorgonPetrify(c);
-recalcAdjAlive();
 var h=G.hero;
 if(h.cx===c.x&&h.cy===c.y&&h.last){h.cx=h.last.x;h.cy=h.last.y;}
 h.seg=null;h.queue.length=0;h.pending=null;
@@ -3591,6 +3631,7 @@ function victory(){
 if(ROTANIM.active) finishRotAnim();
 
 G.state='won';G.stateT=now;G.fogLift=true;revealQueue.length=0;
+gameplayStop();
 if (RUN.floor >= 20) {
   clearRunSave();
 }
@@ -3633,6 +3674,7 @@ setTimeout(function(){
 }
 function defeat(){
   if(ROTANIM.active) finishRotAnim();
+  gameplayStop();
 
   G.state='lost';
   G.stateT=now;
@@ -3689,6 +3731,7 @@ function showReviveOption(){
 
     reviveBtn.addEventListener('click', function(){
       reviveBtn.disabled = true;
+      gameplayStop();
 
       showRewardedAd(function(){
         // Успешно посмотрел рекламу — воскрешаем
@@ -3718,6 +3761,7 @@ function showReviveOption(){
         toast('Герой восстал из мёртвых!');
         SND.potion();
         saveRun('play');
+        gameplayStart();
 
         reviveBtn.disabled = false;
       }, function(){
@@ -6779,6 +6823,7 @@ $('btnDescend').textContent='▼ СПУСТИТЬСЯ НА ЯРУС '+(RUN.floor
 renderCamp();
 $('camp').classList.remove('hidden');
 saveRun('camp');
+gameplayStop();
 }
 function renderCamp(){
 $('campRes').innerHTML='<span class="coin"></span> '+RUN.gold+
@@ -6817,6 +6862,7 @@ g.appendChild(d);
 }
 function rowHtml(k,v){return '<div class="row"><span>'+k+'</span><b>'+v+'</b></div>';}
 function showEnd(won){
+gameplayStop();
 var rb = $('btnRevive'); if(rb) rb.style.display='none';
 var gb = $('btnGiveUp'); if(gb) gb.style.display='none';
 
@@ -6866,6 +6912,7 @@ currentEndScore = calcScore();
   $('hud').classList.add('hidden');
 }
 function toMenu(){
+gameplayStop();
 RUN.active=false;
 G.rot=0;
 G.knifeMode=false;G.flagMode=false;
@@ -6899,6 +6946,7 @@ RUN.floor++;
 newFloor();
 announceFloor();
 saveRun('play');
+gameplayStart();
 });
 $('btnAgain').addEventListener('click',function(){SND.click();startRun(RUN.diff);});
 $('btnToMenu').addEventListener('click',function(){SND.click();toMenu();});
@@ -6980,8 +7028,8 @@ document.addEventListener('gesturestart',function(e){e.preventDefault();}); // �
 document.addEventListener('dblclick',function(e){e.preventDefault();});     // зум двойным тапом
 // ---------- старт ----------
 initYandexSDK().then(function(){
-  if(YG.inited && YaGames.features && YaGames.features.LoadingAPI){
-    YaGames.features.LoadingAPI.ready();
+  if(YG.inited && YG.ysdk && YG.ysdk.features && YG.ysdk.features.LoadingAPI){
+      YG.ysdk.features.LoadingAPI.ready();
   }
   if(document.fonts&&document.fonts.load){document.fonts.load('12px "Press Start 2P"');}
   $('btnSound').textContent=SND.on?'♪ вкл':'♪ выкл';
