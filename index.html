@@ -421,7 +421,14 @@ button,.card,.shopitem{touch-action:manipulation}
   .hud-top{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start}
   .panel{white-space:nowrap;flex-shrink:0}
   #hint{display:none}
-  .modebtns{position:fixed;bottom:6px;right:6px}
+  .modebtns{
+    position:fixed;
+    right:6px;
+    top:50%;
+    transform:translateY(-50%);
+    flex-direction:column;
+    z-index:12;
+  }
   .modebtn{min-height:40px;font-size:9px}
 }
 
@@ -567,7 +574,6 @@ h1{font-size:20px;margin-bottom:8px}
 .hud-top{flex-wrap:nowrap;overflow-x:auto}
 .panel{white-space:nowrap}
 #hint{display:none}
-.modebtns{position:static}
 .modebtn{padding:0 10px;font-size:10px;min-height:40px}
 }
 /* ---------- нормальные кнопки меню: Продолжить / Таблица ---------- */
@@ -2159,6 +2165,7 @@ function newFloor(){
 
     G.lightBonus=RUN.lanternBuys*.6;
     wormT=0;
+    cameraFree = false;
     var cs=Math.floor(G.N/2);
     placeMines(cellAt(cs,cs));
 
@@ -3704,6 +3711,7 @@ function startSeg(){
 
   var sdx = dvx - dvy;
   if(sdx !== 0) h.face = sdx > 0 ? 1 : -1;
+  cameraFree = false;
 }
 function heroUpdate(dt){
 var h=G.hero;
@@ -3859,6 +3867,7 @@ function screenToCell(px,py){
 var lpTimer=null,lpDone=false,downPos=null;
 // === НОВОЕ: переменные для тач-управления ===
 var isDragging = false;
+var cameraFree = false; // true = камера не следит за героем
 var dragStart = {x:0, y:0};
 var camStart = {x:0, y:0};
 var DRAG_THRESHOLD = 60; // пикселей, после которых считаем жест "перетаскивание"
@@ -3912,8 +3921,8 @@ cv.addEventListener('pointermove', function(e){
             var dist = Math.hypot(dx, dy);
 
             if(!isDragging && dist > DRAG_THRESHOLD){
-                // Начинаем перетаскивание — запоминаем ТЕКУЩУЮ позицию как старт
                 isDragging = true;
+                cameraFree = true;  // ★ Камера теперь свободна
                 if(lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
                 dragStart = {x: e.clientX, y: e.clientY};
                 camStart = {x: G.cam.x, y: G.cam.y};
@@ -6033,28 +6042,36 @@ drag:.98
 }
 // ---------- камера ----------
 function camUpdate(dt){
-var z=G.cam,tx,ty;
-if(G.state==='demo'){
-tx=Math.cos(now*.0002)*30;
-ty=(G.N-1)*TH2+TH2+Math.sin(now*.00016)*16;
-var mx=W<760?26:90,my=H<600?120:150;
-var fit=Math.min((W-mx)/(G.N*TW+TW),(H-my)/(G.N*TH+WALL*2));
-z.tzoom=clamp(fit*(1+.03*Math.sin(now*.0004)),.35,1.5);
-}else{
-var hp = heroScreenPos();
-tx = hp.x;
-ty = hp.y - 10;
-}
-var k=1-Math.pow(.002,dt);
-z.x+=(tx-z.x)*k;z.y+=(ty-z.y)*k;
-z.zoom+=(z.tzoom-z.zoom)*(1-Math.pow(.001,dt));
-var hw=W/2/z.zoom,hh=H/2/z.zoom;
-var halfW = G.N*TW2 + 40;
-var halfH = G.N*TH2 + WALL + 40;
-var minX = -halfW, maxX = halfW;
-var minY = G.N*TH2 - halfH, maxY = G.N*TH2 + halfH;
-z.x=(maxX-minX<2*hw)?(minX+maxX)/2:clamp(z.x,minX+hw,maxX-hw);
-z.y=(maxY-minY<2*hh)?(minY+maxY)/2:clamp(z.y,minY+hh,maxY-hh);
+    var z=G.cam,tx,ty;
+    if(G.state==='demo'){
+        tx=Math.cos(now*.0002)*30;
+        ty=(G.N-1)*TH2+TH2+Math.sin(now*.00016)*16;
+        var mx=W<760?26:90,my=H<600?120:150;
+        var fit=Math.min((W-mx)/(G.N*TW+TW),(H-my)/(G.N*TH+WALL*2));
+        z.tzoom=clamp(fit*(1+.03*Math.sin(now*.0004)),.35,1.5);
+        var k=1-Math.pow(.002,dt);
+        z.x+=(tx-z.x)*k;
+        z.y+=(ty-z.y)*k;
+    }else{
+        // ★ Если камера свободна — НЕ притягиваем к герою
+        if(!cameraFree){
+            var hp = heroScreenPos();
+            tx = hp.x;
+            ty = hp.y - 10;
+            var k=1-Math.pow(.002,dt);
+            z.x+=(tx-z.x)*k;
+            z.y+=(ty-z.y)*k;
+        }
+        // Если cameraFree === true, просто не трогаем z.x и z.y
+    }
+    z.zoom+=(z.tzoom-z.zoom)*(1-Math.pow(.001,dt));
+    var hw=W/2/z.zoom,hh=H/2/z.zoom;
+    var halfW = G.N*TW2 + 40;
+    var halfH = G.N*TH2 + WALL + 40;
+    var minX = -halfW, maxX = halfW;
+    var minY = G.N*TH2 - halfH, maxY = G.N*TH2 + halfH;
+    z.x=(maxX-minX<2*hw)?(minX+maxX)/2:clamp(z.x,minX+hw,maxX-hw);
+    z.y=(maxY-minY<2*hh)?(minY+maxY)/2:clamp(z.y,minY+hh,maxY-hh);
 }
 // ---------- туман ----------
 function makeFogSprite(size, puffs, seed, tint){
@@ -7175,6 +7192,9 @@ $('btnResurrectGiveUp').addEventListener('click', function() {
     defeat();
 });
 </script>
-<script async src="https://games.pikabu.ru/sdk/sdk.js" onload="initSDK()"></script>
+<script>
+initSDK();
+</script>
+<!-- <script async src="https://games.pikabu.ru/sdk/sdk.js" onload="initSDK()"></script> -->
 </body>
 </html>
