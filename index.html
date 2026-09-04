@@ -2151,6 +2151,15 @@ var BOSS_FLOORS = {
 function isBossFloor(f){ return !!BOSS_FLOORS[f]; }
 
 function newFloor(){
+    for(var ci = 0; ci < G.grid.length; ci++){
+        var gc = G.grid[ci];
+        if(gc.phantomFlagTimer){ clearTimeout(gc.phantomFlagTimer); gc.phantomFlagTimer = null; }
+        if(gc.impFlagTimer){ clearTimeout(gc.impFlagTimer); gc.impFlagTimer = null; }
+    }
+    revealQueue.length = 0;
+    parts.length = 0;
+    texts.length = 0;
+    bats.length = 0;
     var p=floorParams();
     G.rot = 0;
     ROTANIM.active = false;
@@ -6414,7 +6423,10 @@ drawBats(dt);
 }
 // ---------- обновление ----------
 var lastTs=performance.now();
+var frameRunning = false;
 function frame(ts){
+if (frameRunning) return;
+frameRunning = true;
 var dt=clamp((ts-lastTs)/1000,0,.05);
 lastTs=ts;now=ts;
 frameTick = (frameTick + 1) % QUALITY.brightStep;
@@ -6505,6 +6517,7 @@ if(t.age>=t.life)texts.splice(j,1);
 camUpdate(dt);
 hudSync(false);
 draw(dt);
+frameRunning = false;
 requestAnimationFrame(frame);
 }
 // ---------- HUD ----------
@@ -6769,6 +6782,16 @@ function showEnd(won){
   $('hud').classList.add('hidden');
 }
 function toMenu(){
+for(var ci = 0; ci < G.grid.length; ci++){
+    var gc = G.grid[ci];
+    if(gc.phantomFlagTimer){ clearTimeout(gc.phantomFlagTimer); gc.phantomFlagTimer = null; }
+    if(gc.impFlagTimer){ clearTimeout(gc.impFlagTimer); gc.impFlagTimer = null; }
+}
+revealQueue.length = 0;
+parts.length = 0;
+texts.length = 0;
+bats.length = 0;
+if(monsterNotifyTimer){ clearTimeout(monsterNotifyTimer); monsterNotifyTimer = null; }
 gameplayStop();
 RUN.active=false;
 G.rot=0;
@@ -6886,9 +6909,14 @@ document.addEventListener('gesturestart',function(e){e.preventDefault();}); // �
 document.addEventListener('dblclick',function(e){e.preventDefault();});     // зум двойным тапом
 // ---------- старт ----------
 let PKB_SDK = null;
-var pendingDefeat = false; // Флаг, что игрок умер и ждет выбора
+var pendingDefeat = false;
+var gameInitialized = false;  // ← ДОБАВИТЬ
 
 async function initSDK() {
+    // ★ ЗАЩИТА: если уже инициализированы — выходим
+    if (gameInitialized) return;
+    gameInitialized = true;
+
     try {
         if (typeof PkbSDK !== 'undefined') {
             PKB_SDK = await PkbSDK.init();
@@ -6897,27 +6925,25 @@ async function initSDK() {
     } catch (e) {
         console.error('Ошибка инициализации SDK:', e);
     }
-    
-    // ---------- старт ----------
-    if(document.fonts&&document.fonts.load){
+
+    if(document.fonts && document.fonts.load){
         try { await document.fonts.load('12px "Press Start 2P"'); } catch(e){}
     }
-    $('btnSound').textContent=SND.on?'♪ вкл':'♪ выкл';
-    newGame({size:14,mines:44},true);
+
+    $('btnSound').textContent = SND.on ? '♪ вкл' : '♪ выкл';
+    newGame({size:14, mines:44}, true);
     buildCards();
     $('btnContinue').addEventListener('click', continueRun);
     updateContinueButton();
     requestAnimationFrame(frame);
-    
+
     if (PKB_SDK) {
-        try {
-            PKB_SDK.gameStarted(); // Сообщаем платформе, что игра готова
-        } catch(e) { console.error(e); }
+        try { PKB_SDK.gameStarted(); } catch(e) { console.error(e); }
     }
 }
 
 // Страховка: если SDK загрузился синхронно до выполнения этого кода
-if (typeof PkbSDK !== 'undefined' && !PKB_SDK) {
+if (typeof PkbSDK !== 'undefined' && !PKB_SDK && !gameInitialized) {
     initSDK();
 }
 // ---------- ТЕСТОВЫЙ РЕЖИМ ----------
