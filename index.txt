@@ -743,7 +743,7 @@ h1{font-size:20px;margin-bottom:8px}
 <div class="title-actions">
     <button class="btn primary hidden" id="btnContinue">▶ ПРОДОЛЖИТЬ</button>
     <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
-    <button class="btn hidden" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
+    <button class="btn" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
 </div>
 </div>
 </div>
@@ -3499,7 +3499,7 @@ if(RUN.god){
   sparkle(px,py,'#9fd0ff');
 }else{
   var damage=(c.mtype===3)?2:1;
-  RUN.hearts-=damage;
+  // RUN.hearts-=damage;
   SND.boom();G.shake=16;flashRed();
   fiery(px,py);
   addText(px,py-16,'-'+damage+' ♥','#ff6b5e');
@@ -3743,7 +3743,7 @@ function toggleFlag(c){
     c.frostFreezeUntil = now + FROST_FLAG_FREEZE_MS;
     c.frostWasNear = true;
     SND.frostCrack();
-    toast('Знамя вмерзает в лёд на 15 секунд!');
+    toast('Знамя вмерзает в лёд на 30 секунд!');
   }
 
   startPhantomTimer(c, px, py);
@@ -6748,7 +6748,7 @@ toastTimer=setTimeout(function(){el.classList.remove('show');},2600);
 }
 var monsterNotifyTimer = null;
 function notifyNewMonster(mainText, subText) {
-  var el = $('monsterNotify');Зна
+  var el = $('monsterNotify');
   el.innerHTML = mainText + (subText ? '<span class="mn-sub">' + subText + '</span>' : '');
   el.classList.remove('boss','victory','theme-bw','theme-acid','theme-hell','theme-final');
   el.classList.add('show');
@@ -6762,64 +6762,79 @@ requestAnimationFrame(function(){
 requestAnimationFrame(function(){f.style.transition='opacity .6s';f.style.opacity=0;});
 });
 }
-var banner_timer = null;
-var banner_cleanup_timer = null;
-
-// Вспомогательная функция для очистки классов босса и тем
-function clearBannerModifiers() {
-  $('banner').classList.remove('boss', 'victory', 'theme-bw', 'theme-acid', 'theme-hell', 'theme-final');
-}
-
+var bannerTimer=null;
 function banner(a,b){
   var el = $('banner');
-  clearTimeout(banner_timer);
-  clearTimeout(banner_cleanup_timer);
-  clearBannerModifiers();
-  el.classList.remove('show');
+  clearTimeout(bannerTimer);
+
+  el.classList.remove(
+    'show',
+    'boss',
+    'victory',
+    'theme-bw',
+    'theme-acid',
+    'theme-hell',
+    'theme-final'
+  );
+
   void el.offsetWidth;
+
   el.innerHTML = '<div class="b1">' + a + '</div><div class="b2">' + b + '</div>';
   el.classList.add('show');
-  banner_timer = setTimeout(function(){
+
+  bannerTimer = setTimeout(function(){
     el.classList.remove('show');
-    // Ждём 650мс (чуть больше, чем transition: opacity .6s), 
-    // чтобы убрать классы босса/темы только когда текст уже невидим.
-    banner_cleanup_timer = setTimeout(clearBannerModifiers, 650);
   }, 2400);
 }
-
 function bossBanner(title, sub, theme){
   var el = $('banner');
-  clearTimeout(banner_timer);
-  clearTimeout(banner_cleanup_timer);
-  clearBannerModifiers();
-  el.classList.remove('show');
+  clearTimeout(bannerTimer);
+
   theme = theme || 'bw';
+
+  el.classList.remove(
+    'show',
+    'boss',
+    'victory',
+    'theme-bw',
+    'theme-acid',
+    'theme-hell',
+    'theme-final'
+  );
+
   el.innerHTML = '<div class="b1">' + title + '</div><div class="b2">' + sub + '</div>';
   el.classList.add('boss', 'theme-' + theme);
+
   void el.offsetWidth;
+
   el.classList.add('show');
-  banner_timer = setTimeout(function(){
-    el.classList.remove('show');
-    banner_cleanup_timer = setTimeout(clearBannerModifiers, 650);
+
+  bannerTimer = setTimeout(function(){
+    el.classList.remove(
+      'show',
+      'boss',
+      'victory',
+      'theme-bw',
+      'theme-acid',
+      'theme-hell',
+      'theme-final'
+    );
   }, 3600);
 }
-
 function victoryBanner(){
-  var el = $('banner');
-  clearTimeout(banner_timer);
-  clearTimeout(banner_cleanup_timer);
-  clearBannerModifiers();
-  el.classList.remove('show');
-  var score = calcScore();
-  el.innerHTML = '<div class="b1">👑 ПОБЕДА 👑</div>' +
-                 '<div class="b2">Сердце горы покорено</div>' +
-                 '<div class="b3">★ СЧЁТ: ' + score + ' ★</div>';
-  void el.offsetWidth;
-  el.classList.add('victory', 'show');
-  banner_timer = setTimeout(function(){
-    el.classList.remove('show');
-    banner_cleanup_timer = setTimeout(clearBannerModifiers, 650);
-  }, 6000);
+    var el = $('banner');
+    var score = calcScore();
+    el.innerHTML = '<div class="b1">👑 ПОБЕДА 👑</div>' +
+                   '<div class="b2">Сердце горы покорено</div>' +
+                   '<div class="b3">★ СЧЁТ: ' + score + ' ★</div>';
+    el.classList.remove('boss','theme-bw','theme-acid','theme-hell','theme-final','victory');
+    // форсируем reflow для перезапуска анимации
+    void el.offsetWidth;
+    el.classList.add('victory','show');
+    clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(function(){
+        el.classList.remove('show','victory');
+    }, 6000);
 }
 function announceFloor(){
   var f = RUN.floor;
@@ -7048,33 +7063,14 @@ paused = !paused;
 $('help').classList.toggle('hidden');
 }
 // ---------- кнопки ----------
-$('btnDescend').addEventListener('click', async function(){
-    SND.descend();
-    
-    // Показ fullscreen-рекламы после зачистки босс-ярусов (5, 10, 15)
-    // 20-й ярус не трогаем, так как после него сразу экран победы, а не лагерь.
-    if (PKB_SDK && [5, 10, 15].includes(RUN.floor)) {
-        try {
-            // SDK сам следит за лимитом в 120 секунд. 
-            // Если таймер еще не прошел, canShow() вернет false.
-            const canShowAd = await PKB_SDK.ads.fullscreen.canShow();
-            if (canShowAd) {
-                // await "заморозит" выполнение кода ниже, пока игрок не закроет рекламу.
-                // Лагерь — это безопасный экран-меню, поэтому фрода из-за случайных кликов не будет.
-                await PKB_SDK.ads.fullscreen.show();
-            }
-        } catch (e) {
-            console.error('Ошибка при показе fullscreen-рекламы:', e);
-        }
-    }
-
-    // Переход к следующему ярусу (выполнится только после закрытия рекламы)
-    $('camp').classList.add('hidden');
-    RUN.floor++;
-    newFloor();
-    announceFloor();
-    saveRun('play');
-    gameplayStart();
+$('btnDescend').addEventListener('click',function(){
+SND.descend();
+$('camp').classList.add('hidden');
+RUN.floor++;
+newFloor();
+announceFloor();
+saveRun('play');
+gameplayStart();
 });
 $('btnAgain').addEventListener('click',function(){SND.click();startRun(RUN.diff);});
 $('btnToMenu').addEventListener('click',function(){SND.click();toMenu();});
@@ -7469,7 +7465,7 @@ $('btnResurrectGiveUp').addEventListener('click', function() {
     defeat();
 });
 </script>
-<!-- <script>initSDK();</script> -->
-<script async src="https://games.pikabu.ru/sdk/sdk.js" onload="initSDK()"></script>
+<script>initSDK();</script>
+<!-- <script async src="https://games.pikabu.ru/sdk/sdk.js" onload="initSDK()"></script> -->
 </body>
 </html>
