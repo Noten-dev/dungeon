@@ -735,7 +735,7 @@ h1{font-size:20px;margin-bottom:8px}
 <div class="title-actions">
     <button class="btn primary hidden" id="btnContinue">▶ ПРОДОЛЖИТЬ</button>
     <button class="btn" id="btnTitleLeaders">🏆 ТАБЛИЦА СЧЁТА</button>
-    <button class="btn hidden" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
+    <button class="btn" id="btnTitleTest" style="border-color: var(--teal); color: var(--teal);">🛠 ТЕСТ</button>
 </div>
 </div>
 </div>
@@ -2196,28 +2196,46 @@ function newFloor(){
         }, 3000);
     }
 
-	// Подсказка о новой твари
-	if(RUN.floor >= 2){
-	    (function(f){
-	        setTimeout(function(){
-	            if(G.state !== 'play') return;
-	            var newTypes = getNewMonsterTypes(f);
-	            if(newTypes.length === 0) return;
-	            if(newTypes.length === 1){
-	                var m = MONSTERS[newTypes[0]];
-	                notifyNewMonster(
-	                    'НОВЫЙ МОНСТР: ' + m.icon + ' ' + m.name,
-	                    '«' + m.ability + '» — ' + m.abilityDesc
-	                );
-	            } else {
-	                var names = newTypes.map(function(t){
-	                    return MONSTERS[t].icon + ' ' + MONSTERS[t].name;
-	                }).join(', ');
-	                notifyNewMonster('НОВЫЕ МОНСТРЫ: ' + names, '');
-	            }
-	        },2500);
-	    })(RUN.floor);
-	}
+  // Подсказка о новой твари / боссе
+  if (RUN.floor >= 2) {
+    (function(f){
+      var bossType = G.bossType;
+      var delay = isBossFloor(f) ? 3900 : 2500;
+
+      setTimeout(function(){
+        if (G.state !== 'play' || RUN.floor !== f) return;
+
+        // Босс-ярус: показываем информацию о боссе
+        if (isBossFloor(f) && bossType >= 0 && MONSTERS[bossType]) {
+          var bm = MONSTERS[bossType];
+
+          var bossSub = (bossType === 18)
+            ? '«ВЛАСТЬ ГОРЫ» — 3 жизни. При атаке телепортируется. Каждые 15 секунд копирует случайную способность.'
+            : '«' + bm.ability + '» — ' + bm.abilityDesc;
+
+          notifyNewMonster('БОСС: ' + bm.icon + ' ' + bm.name, bossSub);
+          return;
+        }
+
+        // Обычные новые монстры
+        var newTypes = getNewMonsterTypes(f);
+        if (newTypes.length === 0) return;
+
+        if (newTypes.length === 1) {
+          var m = MONSTERS[newTypes[0]];
+          notifyNewMonster(
+            'НОВЫЙ МОНСТР: ' + m.icon + ' ' + m.name,
+            '«' + m.ability + '» — ' + m.abilityDesc
+          );
+        } else {
+          var names = newTypes.map(function(t){
+            return MONSTERS[t].icon + ' ' + MONSTERS[t].name;
+          }).join(', ');
+          notifyNewMonster('НОВЫЕ МОНСТРЫ: ' + names, '');
+        }
+      }, delay);
+    })(RUN.floor);
+  }
 }
 function applyScout(){
 // Одна карта = одна область. За один спуск тратим до 3 карт.
@@ -3353,7 +3371,7 @@ if(RUN.god){
   sparkle(px,py,'#9fd0ff');
 }else{
   var damage=(c.mtype===3)?2:1;
-  RUN.hearts-=damage;
+  // RUN.hearts-=damage;
   SND.boom();G.shake=16;flashRed();
   fiery(px,py);
   addText(px,py-16,'-'+damage+' ♥','#ff6b5e');
@@ -3958,10 +3976,6 @@ cv.addEventListener('pointermove', function(e){
     var c = G.hover;
     var act = c && G.state === 'play' && (G.knifeMode ? !c.revealed : (G.flagMode ? !c.revealed : !c.flagged));
     cv.style.cursor = act ? (G.knifeMode ? 'crosshair' : 'pointer') : 'default';
-});
-$('monsterNotify').addEventListener('click', function() {
-  clearTimeout(monsterNotifyTimer);
-  this.classList.remove('show');
 });
 cv.addEventListener('pointerdown', function(e){
     SND.ensure();
@@ -6563,6 +6577,7 @@ var monsterNotifyTimer = null;
 function notifyNewMonster(mainText, subText) {
   var el = $('monsterNotify');
   el.innerHTML = mainText + (subText ? '<span class="mn-sub">' + subText + '</span>' : '');
+  el.classList.remove('boss','victory','theme-bw','theme-acid','theme-hell','theme-final');
   el.classList.add('show');
   clearTimeout(monsterNotifyTimer);
   monsterNotifyTimer = setTimeout(function(){ el.classList.remove('show'); }, 5500);
@@ -6576,21 +6591,67 @@ requestAnimationFrame(function(){f.style.transition='opacity .6s';f.style.opacit
 }
 var bannerTimer=null;
 function banner(a,b){
-var el=$('banner');
-el.innerHTML='<div class="b1">'+a+'</div><div class="b2">'+b+'</div>';
-el.classList.add('show');
-clearTimeout(bannerTimer);
-bannerTimer=setTimeout(function(){el.classList.remove('show');},2400);
+  var el = $('banner');
+  clearTimeout(bannerTimer);
+
+  el.classList.remove(
+    'show',
+    'boss',
+    'victory',
+    'theme-bw',
+    'theme-acid',
+    'theme-hell',
+    'theme-final'
+  );
+
+  void el.offsetWidth;
+
+  el.innerHTML = '<div class="b1">' + a + '</div><div class="b2">' + b + '</div>';
+  el.classList.add('show');
+
+  bannerTimer = setTimeout(function(){
+    el.classList.remove(
+      'show',
+      'boss',
+      'victory',
+      'theme-bw',
+      'theme-acid',
+      'theme-hell',
+      'theme-final'
+    );
+  }, 2400);
 }
 function bossBanner(title, sub, theme){
-  var el=$('banner');
-  el.innerHTML='<div class="b1">'+title+'</div><div class="b2">'+sub+'</div>';
-  el.classList.remove('theme-bw','theme-acid','theme-hell', 'theme-final');
-  el.classList.add('boss','theme-'+theme,'show');
+  var el = $('banner');
   clearTimeout(bannerTimer);
-  bannerTimer=setTimeout(function(){
-    el.classList.remove('show','boss','theme-bw','theme-acid','theme-hell');
-  },3600);
+
+  el.classList.remove(
+    'show',
+    'boss',
+    'victory',
+    'theme-bw',
+    'theme-acid',
+    'theme-hell',
+    'theme-final'
+  );
+
+  void el.offsetWidth;
+
+  el.innerHTML = '<div class="b1">' + title + '</div><div class="b2">' + sub + '</div>';
+
+  el.classList.add('boss', 'theme-' + theme, 'show');
+
+  bannerTimer = setTimeout(function(){
+    el.classList.remove(
+      'show',
+      'boss',
+      'victory',
+      'theme-bw',
+      'theme-acid',
+      'theme-hell',
+      'theme-final'
+    );
+  }, 3600);
 }
 function victoryBanner(){
     var el = $('banner');
@@ -7132,7 +7193,11 @@ function startTestRun() {
     $('leaders').classList.add('hidden');
     $('hud').classList.remove('hidden');
 
-    banner('ТЕСТ: ЯРУС ' + RUN.floor, floorTag(RUN.floor));
+    if (isBossFloor(RUN.floor)) {
+      announceFloor();
+    } else {
+      banner('ТЕСТ: ЯРУС ' + RUN.floor, floorTag(RUN.floor));
+    }
     hudSync(true);
 }
 
@@ -7218,6 +7283,7 @@ $('btnResurrectGiveUp').addEventListener('click', function() {
     defeat();
 });
 </script>
-<script async src="https://games.pikabu.ru/sdk/sdk.js" onload="initSDK()"></script>
+<script>initSDK();</script>
+<!-- <script async src="https://games.pikabu.ru/sdk/sdk.js" onload="initSDK()"></script> -->
 </body>
 </html>
