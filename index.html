@@ -6894,7 +6894,7 @@ toastTimer=setTimeout(function(){el.classList.remove('show');},2600);
 }
 var monsterNotifyTimer = null;
 function notifyNewMonster(mainText, subText) {
-  var el = $('monsterNotify');Зна
+  var el = $('monsterNotify');
   el.innerHTML = mainText + (subText ? '<span class="mn-sub">' + subText + '</span>' : '');
   el.classList.remove('boss','victory','theme-bw','theme-acid','theme-hell','theme-final');
   el.classList.add('show');
